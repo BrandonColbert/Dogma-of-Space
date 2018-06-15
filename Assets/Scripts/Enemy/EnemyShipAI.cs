@@ -11,11 +11,14 @@ public class EnemyShipAI : MonoBehaviour {
     
     void FixedUpdate() {
         Rigidbody2D rb = ship.GetComponent<Rigidbody2D>();
-        rb.velocity = new Vector2(0, ship.speed) * (direction ? 1 : -1);
+        rb.velocity = new Vector2(0, ship.GetComponent<ShipAttributes>().speed) * (direction ? 1 : -1);
 
         if(ship is Fighter) {
             Fighter fighter = ship as Fighter;
-            fighter.FireShell(true);
+
+            foreach(FighterWeapon weapon in fighter.weapons) {
+                weapon.Fire();
+            }
         }
     }
 
