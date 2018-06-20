@@ -1,3 +1,5 @@
+using System;
+using System.Security.Cryptography;
 using UnityEngine;
 
 public class MathHelper {
@@ -69,4 +71,25 @@ public class MathHelper {
 
         return v;
     }
+
+    private static RNGCryptoServiceProvider rng = new RNGCryptoServiceProvider();
+
+    ///<summary>Random from min and max</summary>
+    public static float Rand(float min, float max) {
+        byte[] data = new byte[4];
+        rng.GetBytes(data);
+        float next = Mathf.Abs((float)BitConverter.ToInt32(data, 0) / (float)int.MaxValue);
+
+        return min + next * (max - min);
+    }
+
+    ///<summary>Random from min and max</summary>
+    public static int Rand(int min, int max) {
+        return (int)Rand((float)min, (float)max);
+    }
+
+    ///<summary>Rotates the point around the pivot.false Taken from here: http://answers.unity.com/comments/1434008/view.html</summary>
+    public static Vector3 RotateAround(Vector3 point, Vector3 pivot, Quaternion rotation) {
+         return rotation * (point - pivot) + pivot;
+     }
 }

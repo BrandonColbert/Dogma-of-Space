@@ -4,7 +4,7 @@ using UnityEngine;
 public class Shell : MonoBehaviour {
     public Ship source;
 
-    public float speed;
+    public Vector2 speed;
     public Action<Shell, Rigidbody2D> movementLogic;
     public Action<Shell, GameObject, bool, Collision2D> collisionLogic;
     

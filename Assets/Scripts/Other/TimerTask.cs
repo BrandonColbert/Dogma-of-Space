@@ -7,22 +7,42 @@ public class TimerTask {
     public TimerTask() : this(0) {}
 
     public TimerTask(float interval) {
+        Interval(interval);
+        Set(0);
+    }
+
+    public bool Next() {
+        return Next(interval);
+    }
+
+    public bool Next(float interval) {
         this.interval = interval;
-        lastTime = 0;
+        float time = Time.time;
+        
+        bool ready = Ready(time);
+        if(ready) Set(time);
+
+        return ready;
     }
 
     public bool Ready() {
-        return Ready(interval);
+        return Ready(Time.time);
     }
 
-    public bool Ready(float interval) {
-        float time = Time.time;
+    public bool Ready(float time) {
+        return time >= lastTime + interval;
+    }
 
-        if(time >= lastTime + interval) {
-            lastTime = time;
-            return true;
-        }
+    public TimerTask Interval(float interval) {
+        this.interval = interval;
+        return this;
+    }
 
-        return false;
+    public void Set(float time) {
+        lastTime = time;
+    }
+
+    public float Till() {
+        return (lastTime + interval) - Time.time;
     }
 }

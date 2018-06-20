@@ -30,20 +30,27 @@ public class BreakableObject : MonoBehaviour {
         }
     }
 
-    ///The minimum area required for a fracture to spawn
-    public static readonly float minFractureArea = 0.1f;
+    [Tooltip("The minimum area required for a fracture to spawn")]
+    public float minFractureArea = 0.1f;
 
-    ///Holds the force and line across which a break occurs
+    [Tooltip("Despawn fragments after this amount of time in seconds has elapsed. If set to 0, the fragments won't despawn")]
+    public float despawnAfter = 10f;
+
+    [Tooltip("The amount of force this object will break with")]
     public float breakForce = 5f;
+
+    [Tooltip("Position of the line across which the break will initially occur")]
     public Vector3 breakLineStart = Vector3.up, breakLineEnd = Vector3.down;
 
-    ///Must go to zero before the object can shatter
+    [Tooltip("Must go to zero before the object can shatter")]
     public float maxHealth = 100f, health = 0f;
 
+    private Material lastMaterial = null;
+    private Color? lastColor = null;
+
     ///<summary>Uses Gizmos to display what a break will like look</summary>
-    void RenderMesh(Mesh mesh, Vector3 center, Color? triangleColor = null, Color? normalColor = null) {
+    public static void RenderMesh(Mesh mesh, Vector3 center, Vector3 scale, Color? triangleColor = null, Color? normalColor = null) {
         if(mesh != null) {
-            Vector3 scale = transform.localScale;
             center = new Vector3(center.x * scale.x, center.y * scale.y, center.z * scale.z);
 
             Vector3[] vertices = Array.ConvertAll(mesh.vertices, v => new Vector3(v.x * scale.x, v.y * scale.y, v.z * scale.z));
@@ -72,6 +79,11 @@ public class BreakableObject : MonoBehaviour {
         }
     }
 
+    ///<summary>Ensures the break line's point is correctly rotated relative to this object</summary>
+    public Vector3 RelativePoint(Vector3 point) {
+        return MathHelper.RotateAround(point, Vector3.zero, Quaternion.Inverse(transform.localRotation));
+    }
+
     ///<summary>Gets the area of a mesh by adding the areas of its triangles</summary>
     float GetArea(Mesh mesh) {
         Vector3[] vertices = mesh.vertices;
@@ -97,12 +109,17 @@ public class BreakableObject : MonoBehaviour {
         return area;
     }
 
-    public T[] ConvertToArray<T>(object[] objs) {
+    ///<summary>Gets the area of a mesh by adding the areas of its triangles</summary>
+    public float GetArea() {
+        return GetArea(GetComponent<MeshFilter>().sharedMesh);
+    }
+
+    T[] ConvertToArray<T>(object[] objs) {
         return objs.ToList().ConvertAll(f => (T)f).ToArray();
     }
 
     ///<summary>Scales the mesh physically and sets the polygon collider's points to that of the mesh</summary>
-    void FormatBreakable() {
+    public void FormatBreakable() {
         health = maxHealth;
 
         Vector3[] vertices = GetComponent<MeshFilter>().mesh.vertices;
@@ -116,7 +133,8 @@ public class BreakableObject : MonoBehaviour {
         transform.localScale = Vector3.one;
         GetComponent<MeshFilter>().mesh.vertices = vertices;
         GetComponent<MeshFilter>().mesh.RecalculateBounds();
-        GetComponent<PolygonCollider2D>().points = Array.ConvertAll(vertices, v => (Vector2)v);
+        
+        GetComponent<PolygonCollider2D>().points = Array.ConvertAll(vertices.OrderBy(v => Mathf.Atan2(-v.y, -v.x)).ToArray(), v => (Vector2)v);
     }
 
     ///<summary>Gets all the points where the break line will intersect the triangles of the mesh</summary>
@@ -205,7 +223,7 @@ public class BreakableObject : MonoBehaviour {
             float area = GetArea(meshAt.mesh);
             if(area < minFractureArea) return null;
 
-            GameObject fractureObject = Instantiate(gameObject, transform.position + meshAt.center, transform.rotation);
+            GameObject fractureObject = Instantiate(gameObject, transform.position + meshAt.center, original == null ? transform.rotation : Quaternion.identity);
 
             fractureObject.GetComponent<MeshFilter>().mesh = meshAt.mesh;
             fractureObject.name = gameObject.name;
@@ -216,7 +234,13 @@ public class BreakableObject : MonoBehaviour {
                 float originalArea = GetArea(original.GetComponent<MeshFilter>().mesh);
 
                 fractureObject.GetComponent<Rigidbody2D>().mass = area / originalArea * originalMass;
-                fractureObject.GetComponent<BreakableObject>().maxHealth = area / originalArea * maxHealth;
+                fractureObject.GetComponent<Rigidbody2D>().velocity = original.GetComponent<Rigidbody2D>().velocity;
+                fractureObject.GetComponent<Rigidbody2D>().angularVelocity = original.GetComponent<Rigidbody2D>().angularVelocity;
+                fractureObject.GetComponent<BreakableObject>().maxHealth = fractureObject.GetComponent<BreakableObject>().health = area / originalArea * maxHealth;
+
+                fractureObject.transform.parent = original.transform.parent;
+
+                fractureObject.transform.RotateAround(original.transform.localPosition, Vector3.forward, original.transform.eulerAngles.z);
             }
 
             return fractureObject;
@@ -230,8 +254,6 @@ public class BreakableObject : MonoBehaviour {
         Vector3 center = transform.position;
 
         foreach(GameObject piece in pieces) {
-            piece.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-            piece.GetComponent<Rigidbody2D>().angularVelocity = 0f;
             piece.GetComponent<Rigidbody2D>().AddForce((piece.transform.position - center).normalized * force);
         }
 
@@ -245,6 +267,9 @@ public class BreakableObject : MonoBehaviour {
             breakLineStart = from;
             breakLineEnd = to;
         }
+
+        from = RelativePoint(from);
+        to = RelativePoint(to);
 
         Vector3[] breakPoints = GetBreakPoints(mesh, from, to), weakSide, strongSide;
         GetSides(mesh, from, to, out weakSide, out strongSide);
@@ -264,7 +289,9 @@ public class BreakableObject : MonoBehaviour {
 
         fractures.RemoveAll(obj => obj == null);
 
-        if(spawn && force > 0f) BlastApart(fractures.ConvertAll(f => (GameObject)f).ToArray(), force);
+        if(spawn) {
+            BlastApart(fractures.ConvertAll(f => (GameObject)f).ToArray(), force);
+        }
 
         return fractures.ToArray();
     }
@@ -288,9 +315,7 @@ public class BreakableObject : MonoBehaviour {
         }
 
         health -= damage < 0 ? force : damage;
-        if(health > 0f) {
-            return;
-        }
+        if(health > 0f) return;
 
         Func<Vector2, float, Vector3> RandomVectorOffset = delegate(Vector2 original, float range) {
             return new Vector3(original.x + UnityEngine.Random.Range(-range, range), original.y + UnityEngine.Random.Range(-range, range));
@@ -315,7 +340,7 @@ public class BreakableObject : MonoBehaviour {
                 MeshAt[] pieces = ConvertToArray<MeshAt>(Break(meshAt.mesh, 0f, start, end, false)).ToList().ConvertAll(p => new MeshAt(p.mesh, meshAt.center + p.center)).ToArray();
 
                 if(segment < maxSegments && pieces.Count() > 0) {
-                    int randomizeWhich = UnityEngine.Random.Range(0, 126);
+                    int randomizeWhich = UnityEngine.Random.Range(0, 201);
 
                     //Debug.Log("During segment " + segment + ", got " + randomizeWhich);
 
@@ -343,12 +368,28 @@ public class BreakableObject : MonoBehaviour {
         };
 
         if(spawn) {
-            List<MeshAt> partMeshAts = reshatter(new MeshAt(GetComponent<MeshFilter>().sharedMesh, Vector3.zero), fractureModifier < 0 ? 10 : fractureModifier, 0);
+            if(lastMaterial != null) {
+                GetComponent<Renderer>().material = lastMaterial;
+            }
+
+            if(lastColor != null) {
+                GetComponent<Renderer>().material.color = lastColor.Value;
+            }
+
+            int fractureAmount = fractureModifier < 0 ? (int)((GetArea(GetComponent<MeshFilter>().mesh) + 3f * Mathf.Log(force + 1)) * 0.5f) : fractureModifier;
+
+            //Debug.Log("Fracturing: " + fractureAmount);
+
+            List<MeshAt> partMeshAts = reshatter(new MeshAt(GetComponent<MeshFilter>().sharedMesh, Vector3.zero), fractureAmount, 0);
 
             List<GameObject> partObjects = partMeshAts.ConvertAll(ma => CreateFractureObject(ma, gameObject));
             partObjects.RemoveAll(obj => obj == null);
 
             BlastApart(partObjects.ToArray(), force);
+
+            foreach(GameObject piece in partObjects) {
+                piece.GetComponent<BreakableObject>().Vanish();
+            }
         }
     }
 
@@ -357,12 +398,46 @@ public class BreakableObject : MonoBehaviour {
         Shatter(breakLineStart, breakLineEnd, breakForce);
     }
 
-    void OnDrawGizmos() {
-        Gizmos.color = Color.black;
-        Gizmos.DrawLine(transform.position + breakLineStart, transform.position + breakLineEnd);
+    void Vanish() {
+        if(despawnAfter > 0f) {
+            StartCoroutine(VanishOverTime());
+        }
+    }
+
+    IEnumerator VanishOverTime() {
+        Material material = GetComponent<Renderer>().material;
+        lastMaterial = material;
+        material.SetFloat("_Mode", 2);
+        material.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        material.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        material.SetInt("_ZWrite", 0);
+        material.DisableKeyword("_ALPHATEST_ON");
+        material.EnableKeyword("_ALPHABLEND_ON");
+        material.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        material.renderQueue = 3000;
+        GetComponent<Renderer>().material = material;
+
+        Color c = material.color;
+        lastColor = c;
+        float time = despawnAfter / 2f;
+        float interval = 0.1f;
+        float end = 5.7f;
+
+        yield return new WaitForSeconds(time);
+
+        for(float i = 0; i < end; i += interval) {
+            GetComponent<Renderer>().material.color = new Color(c.r, c.g, c.b, (Mathf.Sin(Mathf.Pow(i + 1.25f, 2f)) + 1f) /2f);
+
+            yield return new WaitForSeconds(time / end * interval);
+        }
+
+        Destroy(gameObject);
     }
 
     void OnDrawGizmosSelected() {
+        Gizmos.color = Color.black;
+        Gizmos.DrawLine(transform.position + breakLineStart, transform.position + breakLineEnd);
+        
         /*
         Func<Vector2, float, Vector3> RandomVectorOffset = delegate(Vector2 original, float range) {
             return new Vector3(original.x + UnityEngine.Random.Range(-range, range), original.y + UnityEngine.Random.Range(-range, range));
@@ -376,7 +451,7 @@ public class BreakableObject : MonoBehaviour {
         Action<MeshAt, Color, int, int> reshatter = null;
         reshatter = delegate(MeshAt meshAt, Color color, int maxSegments, int segment) {
             Vector3 layer = transform.position + meshAt.center + transform.forward * (-0.5f * (float)(1 + segment));
-            RenderMesh(meshAt.mesh, layer, color);
+            RenderMesh(meshAt.mesh, layer, transform.localScale, color);
 
             if(maxSegments > 0) {
                 float scale = (float)segment / (float)maxSegments * Vector3.Distance(breakLineStart, breakLineEnd) / 2f;
@@ -403,21 +478,21 @@ public class BreakableObject : MonoBehaviour {
         reshatter(new MeshAt(GetComponent<MeshFilter>().sharedMesh, Vector3.zero), Color.white, 1, 0);
         */
         /*
-        RenderMesh(GetComponent<MeshFilter>().sharedMesh, transform.position + transform.forward * -0.25f, Color.white);
+        RenderMesh(GetComponent<MeshFilter>().sharedMesh, transform.position + transform.forward * -0.25f, transform.localScale, Color.white);
 
         MeshAt[] fractures = ConvertToArray<MeshAt>(Break(0f, breakLineStart, breakLineEnd,  false));
 
         if(fractures.Count() > 0) {
-            RenderMesh(fractures[0].mesh, transform.position + fractures[0].center + transform.forward * -0.5f, Color.red);
+            RenderMesh(fractures[0].mesh, transform.position + fractures[0].center + transform.forward * -0.5f, transform.localScale, Color.red);
         }
 
         if(fractures.Count() > 1) {
-            RenderMesh(fractures[1].mesh, transform.position + fractures[1].center + transform.forward * -0.75f, Color.blue);
+            RenderMesh(fractures[1].mesh, transform.position + fractures[1].center + transform.forward * -0.75f, transform.localScale, Color.blue);
         }
         */
     }
 
     void Start() {
-        FormatBreakable();
+        //FormatBreakable();
     }
 }

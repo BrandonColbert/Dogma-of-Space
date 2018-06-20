@@ -5,25 +5,24 @@ public class FighterWeapon : MonoBehaviour {
     public Ship ship;
 
     public GameObject projectile;
-    public Vector3 fireLocation;
+    public Vector2 fireLocation;
+    public Vector2 fireDirection;
     public bool aimable, hitscan, homing;
     public float fireDamage = 1f, fireRate = 15f, projectileSpeed = 20f;
 
-    private TimerTask timer = new TimerTask();
+    public TimerTask timer = new TimerTask();
 
-    public void Fire() {
+    public bool Fire() {
         if(gameObject.activeSelf) {
-            if(timer.Ready(1 / fireRate)) {
+            if(timer.Next(1 / fireRate)) {
                 GameObject shellObject = Instantiate(projectile, gameObject.transform.position, transform.rotation);
                 shellObject.transform.Translate(fireLocation);
 
                 if(aimable) {
-                    Vector3 direction = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
                     shellObject.transform.Rotate(Vector3.forward,
                         90f -
                         gameObject.transform.eulerAngles.z +
-                        Mathf.Rad2Deg * Mathf.Atan2(gameObject.transform.position.y - direction.y, gameObject.transform.position.x - direction.x)
+                        Mathf.Rad2Deg * Mathf.Atan2(gameObject.transform.position.y - fireDirection.y, gameObject.transform.position.x - fireDirection.x)
                     );
                 }
 
@@ -33,17 +32,20 @@ public class FighterWeapon : MonoBehaviour {
                 if(hitscan) {
                     HitscanShot(shell);
                 } else {
-                    shell.speed = projectileSpeed + ship.GetComponent<Rigidbody2D>().velocity.magnitude;
-                    shellObject.AddComponent<Rigidbody2D>().mass = 0.05f;//0.0001f;
+                    shell.speed = ship.GetComponent<Rigidbody2D>().velocity + (Vector2)shell.transform.up * projectileSpeed;
                     shell.movementLogic = delegate(Shell s, Rigidbody2D rb) { ShellMovementLogic(s, rb); };
                     shell.collisionLogic = delegate(Shell s, GameObject collided, bool isShip, Collision2D collision) { ShellCollisionLogic(s, collided, isShip, collision); };
                 }
+
+                return true;
             }
         }
+
+        return false;
     }
 
     public virtual void ShellMovementLogic(Shell shell, Rigidbody2D rb) {
-        rb.velocity = shell.transform.up * shell.speed;
+        rb.velocity = shell.speed;
 
         if(Vector3.Distance(shell.transform.position, transform.position) > 100f) {
             Destroy(shell.gameObject);
@@ -67,9 +69,9 @@ public class FighterWeapon : MonoBehaviour {
             }
         } else if(collided.GetComponent<BreakableObject>() != null) {
             Vector3 impactPoint = shell.transform.position - collided.transform.position;
-            Vector3 finalPoint = impactPoint + shell.transform.up * shell.speed;
+            Vector3 finalPoint = impactPoint + (Vector3)shell.speed;
 
-            collided.GetComponent<BreakableObject>().Shatter(impactPoint, finalPoint, projectileSpeed * 2f, fireDamage);
+            collided.GetComponent<BreakableObject>().Shatter(impactPoint, finalPoint, shell.speed.magnitude * 100 * shell.GetComponent<Rigidbody2D>().mass, fireDamage);
 
             Destroy(shell.gameObject);
         } else {
@@ -79,5 +81,11 @@ public class FighterWeapon : MonoBehaviour {
 
     public virtual void HitscanShot(Shell shell) {
         Destroy(shell.gameObject);
+    }
+
+    void OnDrawGizmosSelected() {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(transform.position, transform.position + (Vector3)fireLocation);
+        Gizmos.DrawSphere(transform.position + (Vector3)fireLocation, 0.01f);
     }
 }

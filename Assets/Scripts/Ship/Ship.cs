@@ -5,16 +5,23 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(ShipAttributes))]
 public class Ship : MonoBehaviour {
+    public static List<Ship> ships = new List<Ship>();
+
+    public ShipStatusBar statusBar;
+    public ShipController controller;
     public ShipModule module;
+    public TimerTask shieldCooldown;
 
     [HideInInspector]
     public int shipID;
     [HideInInspector]
     public ShipAttributes attributes;
-    [HideInInspector]
-    public float currentSpeed, lastForwards;
 
     void Start() {
+        Spawn();
+    }
+
+    void Awake() {
         Spawn();
     }
 
@@ -23,59 +30,68 @@ public class Ship : MonoBehaviour {
         attributes = GetComponent<ShipAttributes>();
         attributes.health = attributes.maxHealth;
         attributes.shields = attributes.maxShields;
+        shieldCooldown = new TimerTask();
+        ships.Add(this);
 	}
 
-    public void Damage(float value) {
+    public virtual void Damage(float value) {
         if(attributes.shields > 0) {
             attributes.shields -= value;
             value = attributes.shields < 0 ? -attributes.shields : 0;
+            shieldCooldown.Set(Time.time);
+            if(statusBar != null) statusBar.SetShields(attributes.shields, attributes.maxShields);
         }
 
-        attributes.health -= value;
-
-        if(attributes.health < 0) {
-            Destroy(gameObject);
+        if(value > 0) {
+            attributes.health -= value;
+            if(attributes.health < 0) Destroy(gameObject);
+            if(statusBar != null) statusBar.SetHealth(attributes.health, attributes.maxHealth);
         }
     }
 
-    void Move(float forward, float rotate) {
-        Rigidbody2D rb = gameObject.GetComponent<Rigidbody2D>();
-        
-        transform.Rotate(Vector3.forward, rotate * attributes.handling * Time.deltaTime);
+    protected Vector2 ConstrainedVectorChange(Vector2 value, Vector2 change, Vector2 target) {
+        return new Vector2(ConstrainedChange(value.x, change.x, target.x), ConstrainedChange(value.y, change.y, target.y));
+    }
 
-        if(Mathf.Abs(forward) >= 1f || (forward < 0 ? forward < lastForwards : forward > lastForwards)) {
-            currentSpeed = currentSpeed < attributes.speed ? currentSpeed + attributes.acceleration * Time.deltaTime : attributes.speed;
-            rb.velocity = transform.up * forward * currentSpeed * Time.deltaTime;
-            rb.angularVelocity = 0;
-        } else {
-            if(currentSpeed > 1f) {
-                rb.velocity = rb.velocity.normalized * currentSpeed * Time.deltaTime;
-                currentSpeed *= 0.995f;
-            } else {
-                currentSpeed = 0f;
+    protected float ConstrainedChange(float value, float change, float target) {
+        float n = value + change;
+        float r = value;
+        
+        if(value < target) {
+            if(n > target) {
+                r = target;
+            } else if(n > value) {
+                r = n;
+            }
+        } else if(value > target) {
+            if(n < target) {
+                r = target;
+            } else if(n < value) {
+                r = n;
             }
         }
 
-        lastForwards = forward;
+        return r;
+    }
+
+    public void Move(float forward, float rotate) {
+        Rigidbody2D rb = gameObject.GetComponent<Rigidbody2D>();
+
+        rb.angularVelocity = ConstrainedChange(rb.angularVelocity, (rotate == 0f ? -Mathf.Sign(rb.angularVelocity) : rotate) * attributes.handling * 30f * Time.deltaTime, rotate * 270f);
+        rb.velocity = ConstrainedVectorChange(rb.velocity, transform.up * forward * attributes.acceleration * Time.deltaTime, transform.up * forward * attributes.speed);
     }
 
     public virtual void FixedUpdate() {
-        Move(Input.GetAxis("Vertical"), -Input.GetAxis("Horizontal"));
+        if(controller != null) controller.PhysicsLogic(this);
+    }
 
-        if(module != null) {
-            switch(module.GetModuleType()) {
-                case ShipModule.ModuleType.ACTIVE:
-                    if(Input.GetKeyDown(KeyCode.Space))  module.OnActivate(this);
-                    break;
-                case ShipModule.ModuleType.HELD:
-                    if(Input.GetKey(KeyCode.Space)) module.DuringUse(this);
-                    break;
-                case ShipModule.ModuleType.TOGGLE:
-                    if(Input.GetKeyDown(KeyCode.Space)) module.OnActivate(this);
-                    else if(Input.GetKeyUp(KeyCode.Space)) module.OnDeactivate(this);
-                    else if(Input.GetKey(KeyCode.Space)) module.DuringUse(this);
-                    break;
-            }
+    public virtual void Update() {
+        if(controller != null) controller.Logic(this);
+
+        if(attributes.shields < attributes.maxShields && shieldCooldown.Interval(attributes.shieldRepairCooldown).Ready()) {
+            attributes.shields += attributes.shieldRepairRate * Time.deltaTime;
+            if(attributes.shields > attributes.maxShields) attributes.shields = attributes.maxShields;
+            if(statusBar != null) statusBar.SetShields(attributes.shields, attributes.maxShields);
         }
     }
 }
