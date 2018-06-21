@@ -1,16 +1,30 @@
 using UnityEngine;
 
 public class ShipModuleTurbo : ShipModule {
+    public Color turboTrailColor = Color.blue;
     public float accelerationModifier = 5f, speedModifier = 2f;
     public float fuelCapacity = 100f, fuel = -1;
     private float lastUseTime;
     private float originalAcceleration, originalSpeed;
+    private UnityEngine.ParticleSystem.MinMaxGradient originalTrailColor;
+    private UnityEngine.ParticleSystem.MinMaxCurve originalEmissionRoT;
 
     public override void OnActivate(Ship ship) {
         base.OnActivate(ship);
         
         originalAcceleration = ship.attributes.acceleration;
         originalSpeed = ship.attributes.speed;
+
+        if(ship.trail) {
+            originalTrailColor = ship.trail.main.startColor;
+            originalEmissionRoT = ship.trail.emission.rateOverTime;
+
+            ParticleSystem.MainModule psmm = ship.trail.main;
+            psmm.startColor = turboTrailColor;
+
+            ParticleSystem.EmissionModule psem = ship.trail.emission;
+            psem.rateOverTime = originalEmissionRoT.constant * 5f;
+        }
 
         if(fuel > 0f) {
             ship.attributes.acceleration *= accelerationModifier;
@@ -23,6 +37,14 @@ public class ShipModuleTurbo : ShipModule {
         
         ship.attributes.acceleration = originalAcceleration;
         ship.attributes.speed = originalSpeed;
+
+        if(ship.trail) {
+            ParticleSystem.MainModule psmm = ship.trail.main;
+            psmm.startColor = originalTrailColor;
+
+            ParticleSystem.EmissionModule psem = ship.trail.emission;
+            psem.rateOverTime = originalEmissionRoT;
+        }
     }
 
     public override void DuringUse(Ship ship) {

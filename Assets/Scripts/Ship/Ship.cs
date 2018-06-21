@@ -8,6 +8,7 @@ public class Ship : MonoBehaviour {
     public static List<Ship> ships = new List<Ship>();
 
     public ShipStatusBar statusBar;
+    public ParticleSystem trail;
     public ShipController controller;
     public ShipModule module;
     public TimerTask shieldCooldown;
@@ -21,10 +22,6 @@ public class Ship : MonoBehaviour {
         Spawn();
     }
 
-    void Awake() {
-        Spawn();
-    }
-
     public virtual void Spawn() {
         shipID = GetInstanceID();
         attributes = GetComponent<ShipAttributes>();
@@ -33,6 +30,11 @@ public class Ship : MonoBehaviour {
         shieldCooldown = new TimerTask();
         ships.Add(this);
 	}
+
+    public virtual void Kill() {
+        ships.Remove(this);
+        Destroy(gameObject);
+    }
 
     public virtual void Damage(float value) {
         if(attributes.shields > 0) {
@@ -44,41 +46,32 @@ public class Ship : MonoBehaviour {
 
         if(value > 0) {
             attributes.health -= value;
-            if(attributes.health < 0) Destroy(gameObject);
+            if(attributes.health < 0) Kill();
             if(statusBar != null) statusBar.SetHealth(attributes.health, attributes.maxHealth);
         }
-    }
-
-    protected Vector2 ConstrainedVectorChange(Vector2 value, Vector2 change, Vector2 target) {
-        return new Vector2(ConstrainedChange(value.x, change.x, target.x), ConstrainedChange(value.y, change.y, target.y));
-    }
-
-    protected float ConstrainedChange(float value, float change, float target) {
-        float n = value + change;
-        float r = value;
-        
-        if(value < target) {
-            if(n > target) {
-                r = target;
-            } else if(n > value) {
-                r = n;
-            }
-        } else if(value > target) {
-            if(n < target) {
-                r = target;
-            } else if(n < value) {
-                r = n;
-            }
-        }
-
-        return r;
     }
 
     public void Move(float forward, float rotate) {
         Rigidbody2D rb = gameObject.GetComponent<Rigidbody2D>();
 
-        rb.angularVelocity = ConstrainedChange(rb.angularVelocity, (rotate == 0f ? -Mathf.Sign(rb.angularVelocity) : rotate) * attributes.handling * 30f * Time.deltaTime, rotate * 270f);
-        rb.velocity = ConstrainedVectorChange(rb.velocity, transform.up * forward * attributes.acceleration * Time.deltaTime, transform.up * forward * attributes.speed);
+        rb.angularVelocity = MathHelper.ConstrainedChange(rb.angularVelocity, (rotate == 0f ? -Mathf.Sign(rb.angularVelocity) : rotate) * attributes.handling * 30f * Time.deltaTime, rotate * 270f);
+        rb.velocity = MathHelper.ConstrainedVectorChange(rb.velocity, transform.up * forward * attributes.acceleration * Time.deltaTime, transform.up * forward * attributes.speed);
+
+        if(trail) {
+            if(forward == 0f) {
+                if(trail.isPlaying) {
+                    trail.Stop();
+                }
+            } else {
+                if(!trail.isPlaying) {
+                    trail.Play();
+                }
+            }
+        }
+    }
+
+    public void Move(float forward) {
+        Move(forward, 0f);
     }
 
     public virtual void FixedUpdate() {

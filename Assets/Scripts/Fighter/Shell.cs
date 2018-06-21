@@ -3,8 +3,8 @@ using UnityEngine;
 
 public class Shell : MonoBehaviour {
     public Ship source;
-
     public Vector2 speed;
+    public float travelDistance;
     public Action<Shell, Rigidbody2D> movementLogic;
     public Action<Shell, GameObject, bool, Collision2D> collisionLogic;
     

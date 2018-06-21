@@ -92,4 +92,28 @@ public class MathHelper {
     public static Vector3 RotateAround(Vector3 point, Vector3 pivot, Quaternion rotation) {
          return rotation * (point - pivot) + pivot;
      }
+
+    public static Vector2 ConstrainedVectorChange(Vector2 value, Vector2 change, Vector2 target) {
+        return new Vector2(ConstrainedChange(value.x, change.x, target.x), ConstrainedChange(value.y, change.y, target.y));
+    }
+
+    public static float ConstrainedChange(float value, float change, float target) {
+        float n = value + change, r = value;
+        
+        if(value < target) {
+            if(n > target) {
+                r = target;
+            } else if(n > value) {
+                r = n;
+            }
+        } else if(value > target) {
+            if(n < target) {
+                r = target;
+            } else if(n < value) {
+                r = n;
+            }
+        }
+
+        return r;
+    }
 }

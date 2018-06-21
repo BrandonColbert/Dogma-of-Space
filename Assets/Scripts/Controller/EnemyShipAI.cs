@@ -23,23 +23,35 @@ public class EnemyShipAI : FighterController {
     }
 
     public override void PhysicsLogic(Fighter fighter) {
+        float angle = fighter.transform.eulerAngles.z;
+        float targetAngle = 0f;
+
         if(target) {
             Vector2 dif = target.transform.position - transform.position;
-            float deg = Mathf.Atan2(dif.y, dif.x) * Mathf.Rad2Deg - 90f;
-            fighter.transform.eulerAngles = new Vector3(0, 0, deg);
+            targetAngle = Mathf.Atan2(dif.y, dif.x) * Mathf.Rad2Deg - 90f;
             
             if(dif.magnitude > maxDistance) {
-                fighter.Move(1, 0);
+                fighter.Move(1);
             } else if(dif.magnitude < minDistance) {
-                fighter.Move(-1, 0);
+                fighter.Move(-1);
             } else {
-                fighter.Move(0, 0);
+                fighter.Move(0);
             }
 
             fighter.Aim(target.transform.position);
             fighter.Fire();
         } else {
-            fighter.Move(MathHelper.Rand(0, 1), MathHelper.Rand(-1f, 1f));
+            targetAngle = angle;
+            fighter.Move(1);
+            targetAngle += MathHelper.Rand(-3f, 3f);
         }
+
+        foreach(Ship ship in Ship.ships) {
+            if(Vector2.Distance(transform.position, ship.transform.position) < targetRange && ship.shipID != fighter.shipID && (target == null || ship.shipID != target.shipID)) {
+                targetAngle -= Vector2.SignedAngle(ship.transform.position, transform.position) / Mathf.Clamp(1f, (ship.transform.position - transform.position).sqrMagnitude, targetRange);
+            }
+        }
+
+        fighter.transform.eulerAngles = new Vector3(0, 0, targetAngle);
     }
 }
