@@ -211,7 +211,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 660d0c5b2aa1f1a4c93fa6e8c47e293c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damageFactor: 0.02
+  damageFactor: 1
 --- !u!114 &114287153394808086
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -263,13 +263,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a88215ef24ce7ce4980c528ec9a0a032, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  maxHealth: 100
+  health: 0
   minFractureArea: 0.1
   despawnAfter: 10
   breakForce: 5
   breakLineStart: {x: 0, y: 1, z: 0}
   breakLineEnd: {x: 0, y: -1, z: 0}
-  maxHealth: 100
-  health: 0
 --- !u!114 &114713183841961656
 MonoBehaviour:
   m_ObjectHideFlags: 1

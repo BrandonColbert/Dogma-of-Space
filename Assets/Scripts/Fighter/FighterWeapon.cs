@@ -57,7 +57,11 @@ public class FighterWeapon : MonoBehaviour {
     }
 
     public virtual void ShellMovementLogic(Shell shell, Rigidbody2D rb) {
-        rb.velocity = shell.speed;
+        if(homing) {
+
+        } else {
+            rb.velocity = shell.speed;
+        }
 
         if(this) {
             if(hitscan) {
@@ -75,26 +79,23 @@ public class FighterWeapon : MonoBehaviour {
     }
 
     public virtual void ShellCollisionLogic(Shell shell, GameObject collided, bool isShip, Collision2D collision) {
-        if(isShip) {
-            if(collided.GetComponent<Ship>().shipID == shell.source.shipID) {
-                Physics2D.IgnoreCollision(collision.collider, collision.otherCollider);
-            } else {
-                collided.GetComponent<Ship>().Damage(fireDamage);
-                if(!pierces) Destroy(shell.gameObject);
-            }
-        } else if(collided.GetComponent<Shell>() != null) {
+        if(isShip && collided.GetComponent<Ship>().shipID == shell.source.shipID) {
+            Physics2D.IgnoreCollision(collision.collider, collision.otherCollider);
+        } else if(collided.GetComponent<Shell>()) {
             if(collided.GetComponent<Shell>().source.shipID == shell.source.shipID) {
                 Physics2D.IgnoreCollision(collision.collider, collision.otherCollider);
             } else {
                 Destroy(collided);
                 Destroy(shell.gameObject);
             }
-        } else if(collided.GetComponent<BreakableObject>() != null) {
-            Vector3 impactPoint = shell.transform.position - collided.transform.position;
-            Vector3 finalPoint = impactPoint + (Vector3)shell.speed;
-
-            collided.GetComponent<BreakableObject>().Shatter(impactPoint, finalPoint, shell.speed.magnitude * 100 * shell.GetComponent<Rigidbody2D>().mass, fireDamage);
-
+        } else if(collided.GetComponent<Damageable>()) {
+            if(collided.GetComponent<BreakableObject>()) {
+                Vector3 impactPoint = shell.transform.position - collided.transform.position;
+                Vector3 finalPoint = impactPoint + (Vector3)shell.speed;
+                collided.GetComponent<BreakableObject>().Adjust(impactPoint, finalPoint, Mathf.Sqrt(fireDamage) * 250f);
+            }
+            
+            collided.GetComponent<Damageable>().Damage(fireDamage);
             if(!pierces) Destroy(shell.gameObject);
         } else {
             Destroy(shell.gameObject);
@@ -103,13 +104,14 @@ public class FighterWeapon : MonoBehaviour {
 
     public virtual void HitscanShot(Shell shell) {
         Action<Transform> enact = delegate(Transform hit) {
-            if(hit.GetComponent<Ship>()) {
-                hit.GetComponent<Ship>().Damage(fireDamage);
-            } else if(hit.GetComponent<BreakableObject>()) {
-                Vector3 impactPoint = shell.transform.position - hit.position;
-                Vector3 finalPoint = impactPoint + (Vector3)shell.speed;
+            if(hit.GetComponent<Damageable>()) {
+                if(hit.GetComponent<BreakableObject>()) {
+                    Vector3 impactPoint = shell.transform.position - hit.position;
+                    Vector3 finalPoint = impactPoint + (Vector3)shell.speed;
+                    hit.GetComponent<BreakableObject>().Adjust(impactPoint, finalPoint, Mathf.Sqrt(fireDamage) * 250f);   
+                }
 
-                hit.GetComponent<BreakableObject>().Shatter(impactPoint, finalPoint, shell.speed.magnitude * 100 * shell.GetComponent<Rigidbody2D>().mass, fireDamage);
+                hit.GetComponent<Damageable>().Damage(fireDamage);
             }
         };
 

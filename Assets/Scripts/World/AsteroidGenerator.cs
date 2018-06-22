@@ -86,17 +86,25 @@ public class AsteroidGenerator : MonoBehaviour {
         if(sides < 3) sides = 3;
 
         Vector3[] vertices = GenerateVertices(GenerateAngles());
-        GetComponent<MeshFilter>().sharedMesh = GenerateMesh(vertices);
+        GetComponent<MeshFilter>().mesh = GenerateMesh(vertices);
         GetComponent<PolygonCollider2D>().points = Array.ConvertAll(vertices, v => (Vector2)v).ToArray();
+
+        BreakableObject bo = GetComponent<BreakableObject>();
+        if(bo) {
+            float thickness = GetComponent<MeshRenderer>().material.GetFloat("_OutlineThickness") / Mathf.Clamp(Mathf.Sqrt(bo.GetArea() * 0.25f), 1f, 100f);
+            GetComponent<MeshRenderer>().material.SetFloat("_OutlineThickness", thickness);
+        }
 
         if(removeAfter) {
             Destroy(this);
         }
     }
 
+    /*
     void Start() {
-        //GenerateAsteroid();
+        GenerateAsteroid();
     }
+    */
 
     /*
     void OnDrawGizmosSelected() {

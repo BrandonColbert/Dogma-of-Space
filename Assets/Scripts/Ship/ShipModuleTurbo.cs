@@ -8,6 +8,7 @@ public class ShipModuleTurbo : ShipModule {
     private float originalAcceleration, originalSpeed;
     private UnityEngine.ParticleSystem.MinMaxGradient originalTrailColor;
     private UnityEngine.ParticleSystem.MinMaxCurve originalEmissionRoT;
+    private UnityEngine.ParticleSystem.MinMaxCurve originalStartSpeed;
 
     public override void OnActivate(Ship ship) {
         base.OnActivate(ship);
@@ -18,9 +19,11 @@ public class ShipModuleTurbo : ShipModule {
         if(ship.trail) {
             originalTrailColor = ship.trail.main.startColor;
             originalEmissionRoT = ship.trail.emission.rateOverTime;
+            originalStartSpeed = ship.trail.main.startSpeed;
 
             ParticleSystem.MainModule psmm = ship.trail.main;
             psmm.startColor = turboTrailColor;
+            psmm.startSpeed = originalStartSpeed.constant * speedModifier;
 
             ParticleSystem.EmissionModule psem = ship.trail.emission;
             psem.rateOverTime = originalEmissionRoT.constant * 5f;
@@ -41,6 +44,7 @@ public class ShipModuleTurbo : ShipModule {
         if(ship.trail) {
             ParticleSystem.MainModule psmm = ship.trail.main;
             psmm.startColor = originalTrailColor;
+            psmm.startSpeed = originalStartSpeed;
 
             ParticleSystem.EmissionModule psem = ship.trail.emission;
             psem.rateOverTime = originalEmissionRoT;
@@ -52,7 +56,7 @@ public class ShipModuleTurbo : ShipModule {
 
         if(fuel > 0f) {
             fuel -= 20f * Time.deltaTime;
-            ship.statusBar.SetSpecial(fuel, fuelCapacity);
+            if(ship.statusBar) ship.statusBar.SetSpecial(fuel, fuelCapacity);
         } else {
             fuel = 0f;
             OnDeactivate(ship);
@@ -64,14 +68,14 @@ public class ShipModuleTurbo : ShipModule {
     public override void DuringNoUse(Ship ship) {
         if(fuel < 0f) {
             fuel = fuelCapacity;
-            ship.statusBar.SetSpecial(fuel, fuelCapacity);
+            if(ship.statusBar) ship.statusBar.SetSpecial(fuel, fuelCapacity);
         }
 
         if(fuel < fuelCapacity && Time.time - lastUseTime > 5f) {
             fuel += Time.deltaTime * 10f;
             if(fuel > fuelCapacity) fuel = fuelCapacity;
 
-            ship.statusBar.SetSpecial(fuel, fuelCapacity);
+            if(ship.statusBar) ship.statusBar.SetSpecial(fuel, fuelCapacity);
         }
     }
 

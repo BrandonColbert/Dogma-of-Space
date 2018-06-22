@@ -7,7 +7,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(PolygonCollider2D))]
 [RequireComponent(typeof(MeshFilter))]
-public class BreakableObject : MonoBehaviour {
+public class BreakableObject : Damageable {
     ///<summary>Used to check if vectors are equal</summary>
     public class Vector3Comparer : IEqualityComparer<Vector3> {
         public bool Equals(Vector3 v1, Vector3 v2) {
@@ -41,9 +41,6 @@ public class BreakableObject : MonoBehaviour {
 
     [Tooltip("Position of the line across which the break will initially occur")]
     public Vector3 breakLineStart = Vector3.up, breakLineEnd = Vector3.down;
-
-    [Tooltip("Must go to zero before the object can shatter")]
-    public float maxHealth = 100f, health = 0f;
 
     private Material lastMaterial = null;
     private Color? lastColor = null;
@@ -111,7 +108,7 @@ public class BreakableObject : MonoBehaviour {
 
     ///<summary>Gets the area of a mesh by adding the areas of its triangles</summary>
     public float GetArea() {
-        return GetArea(GetComponent<MeshFilter>().sharedMesh);
+        return GetArea(GetComponent<MeshFilter>().mesh);
     }
 
     T[] ConvertToArray<T>(object[] objs) {
@@ -261,13 +258,7 @@ public class BreakableObject : MonoBehaviour {
     }
 
     ///<summary>Breaks the object across a line and flings its pieces away from the center at the given force. Set spawn to false to prevent the pieces from spawning</summary>
-    public object[] Break(Mesh mesh, float force, Vector2 from, Vector2 to, bool spawn = true) {
-        if(spawn) {
-            breakForce = force;
-            breakLineStart = from;
-            breakLineEnd = to;
-        }
-
+    private object[] Break(Mesh mesh, float force, Vector2 from, Vector2 to, bool spawn = true) {
         from = RelativePoint(from);
         to = RelativePoint(to);
 
@@ -297,26 +288,16 @@ public class BreakableObject : MonoBehaviour {
     }
 
     ///<summary>Breaks the object across a line and flings its pieces away from the center at the given force. Set spawn to false to prevent the pieces from spawning</summary>
-    public object[] Break(float force, Vector2 from, Vector2 to, bool spawn = true) {
-        return Break(GetComponent<MeshFilter>().sharedMesh, force, from, to, spawn);
+    private object[] Break(float force, Vector2 from, Vector2 to, bool spawn = true) {
+        return Break(GetComponent<MeshFilter>().mesh, force, from, to, spawn);
     }
 
     ///<summary>Breaks the object across the currently given line and force</summary>
     public object[] Break() {
-        health = 0f;
         return Break(breakForce, breakLineStart, breakLineEnd);
     }
 
-    public void Shatter(Vector2 from, Vector2 to, float force, float damage = -1f, int fractureModifier = -1, bool spawn = true) {
-        if(spawn) {
-            breakForce = force;
-            breakLineStart = from;
-            breakLineEnd = to;
-        }
-
-        health -= damage < 0 ? force : damage;
-        if(health > 0f) return;
-
+    private void Shatter(Vector2 from, Vector2 to, float force, int fractureModifier = -1, bool spawn = true) {
         Func<Vector2, float, Vector3> RandomVectorOffset = delegate(Vector2 original, float range) {
             return new Vector3(original.x + UnityEngine.Random.Range(-range, range), original.y + UnityEngine.Random.Range(-range, range));
         };
@@ -380,7 +361,7 @@ public class BreakableObject : MonoBehaviour {
 
             //Debug.Log("Fracturing: " + fractureAmount);
 
-            List<MeshAt> partMeshAts = reshatter(new MeshAt(GetComponent<MeshFilter>().sharedMesh, Vector3.zero), fractureAmount, 0);
+            List<MeshAt> partMeshAts = reshatter(new MeshAt(GetComponent<MeshFilter>().mesh, Vector3.zero), fractureAmount, 0);
 
             List<GameObject> partObjects = partMeshAts.ConvertAll(ma => CreateFractureObject(ma, gameObject));
             partObjects.RemoveAll(obj => obj == null);
@@ -394,8 +375,20 @@ public class BreakableObject : MonoBehaviour {
     }
 
     public void Shatter() {
-        health = 0f;
         Shatter(breakLineStart, breakLineEnd, breakForce);
+    }
+
+    public void Adjust(Vector2 from, Vector2 to, float force) {
+        breakForce = force;
+        breakLineStart = from;
+        breakLineEnd = to;
+    }
+
+    public override void Kill() {
+        if(!isDead) {
+            Shatter(breakLineStart, breakLineEnd, breakForce);
+            isDead = true;
+        }
     }
 
     void Vanish() {
@@ -492,7 +485,9 @@ public class BreakableObject : MonoBehaviour {
         */
     }
 
-    void Start() {
+    /*
+    public override void Start() {
         //FormatBreakable();
     }
+    */
 }
