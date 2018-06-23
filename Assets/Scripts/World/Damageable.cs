@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 
 public class Damageable : MonoBehaviour {
-    private Action<Damageable> killCallback;
+    private Func<Damageable, bool> killCallback;
     public float maxHealth = 100f, health = 0f;
 
     [HideInInspector]
@@ -24,12 +24,19 @@ public class Damageable : MonoBehaviour {
 
     public virtual void Kill() {
         isDead = true;
-        if(killCallback != null) killCallback(this);
-        Destroy(gameObject);
+
+        if(!(killCallback != null && killCallback(this))) {
+            Destroy(gameObject);
+        }
     }
     
-    public void OnKill(Action<Damageable> callback) {
+    ///<summary> Return true on callback to cancel the default kill function</summary>
+    public void OnKill(Func<Damageable, bool> callback) {
         killCallback = callback;
+    }
+
+    public bool HasKillCallback() {
+        return killCallback != null;
     }
 
     public virtual void Start() {

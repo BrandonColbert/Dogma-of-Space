@@ -19,24 +19,29 @@ public class FighterWeapon : MonoBehaviour {
         UnityEngine.Random.InitState(System.DateTime.Now.Millisecond);
     }
 
+    public virtual void FixedUpdate() {
+        if(aimable) {
+            transform.Rotate(Vector3.forward,
+                90f -
+                gameObject.transform.eulerAngles.z +
+                Mathf.Rad2Deg * Mathf.Atan2(gameObject.transform.position.y - fireDirection.y, gameObject.transform.position.x - fireDirection.x)
+            );
+        }
+    }
+
     public bool Fire() {
         if(gameObject.activeSelf) {
             if(timer.Next(1 / fireRate)) {
+                float shipSpeed = ship.GetComponent<Rigidbody2D>().velocity.magnitude;
                 GameObject shellObject = Instantiate(projectile, gameObject.transform.position, transform.rotation);
                 shellObject.transform.Translate(fireLocation);
 
-                if(aimable) {
-                    shellObject.transform.Rotate(Vector3.forward,
-                        90f -
-                        gameObject.transform.eulerAngles.z +
-                        Mathf.Rad2Deg * Mathf.Atan2(gameObject.transform.position.y - fireDirection.y, gameObject.transform.position.x - fireDirection.x)
-                    );
-                }
-
                 Shell shell = shellObject.AddComponent<Shell>();
                 shell.source = ship;
-                shell.speed = ship.GetComponent<Rigidbody2D>().velocity + (Vector2)shell.transform.up * projectileSpeed;
+                shell.speed = shell.transform.up * (projectileSpeed + shipSpeed);
                 shell.movementLogic = delegate(Shell s, Rigidbody2D rb) { ShellMovementLogic(s, rb); };
+
+                //shell.transform.Translate(shell.transform.up * shipSpeed * Time.deltaTime);
 
                 if(hitscan) {
                     if(shell.GetComponent<Collider2D>()) Destroy(shell.GetComponent<Collider2D>());

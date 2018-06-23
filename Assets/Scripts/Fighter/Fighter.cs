@@ -8,8 +8,8 @@ public class Fighter : Ship {
 
     private int currentWeapon, lastWeapon;
 
-    public override void Spawn() {
-        base.Spawn();
+    public override void Start() {
+        base.Start();
 
         lastWeapon = currentWeapon = 0;
 

@@ -4,8 +4,8 @@ using System.Collections;
 public class EnemyShipAI : FighterController {
     public Ship target;
     public float targetRange = 50f;
-    public float minDistance = 5f;
-    public float maxDistance = 10f;
+    public float minDistance = 2f;
+    public float maxDistance = 8f;
 
     public override void Logic(Fighter fighter) {
         if(target == null) {

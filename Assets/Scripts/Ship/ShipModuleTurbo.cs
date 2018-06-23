@@ -16,17 +16,19 @@ public class ShipModuleTurbo : ShipModule {
         originalAcceleration = ship.attributes.acceleration;
         originalSpeed = ship.attributes.speed;
 
-        if(ship.trail) {
-            originalTrailColor = ship.trail.main.startColor;
-            originalEmissionRoT = ship.trail.emission.rateOverTime;
-            originalStartSpeed = ship.trail.main.startSpeed;
+        foreach(ParticleSystem trail in ship.trails) {
+            if(trail) {
+                originalTrailColor = trail.main.startColor;
+                originalEmissionRoT = trail.emission.rateOverTime;
+                originalStartSpeed = trail.main.startSpeed;
 
-            ParticleSystem.MainModule psmm = ship.trail.main;
-            psmm.startColor = turboTrailColor;
-            psmm.startSpeed = originalStartSpeed.constant * speedModifier;
+                ParticleSystem.MainModule psmm = trail.main;
+                psmm.startColor = turboTrailColor;
+                psmm.startSpeed = originalStartSpeed.constant * speedModifier;
 
-            ParticleSystem.EmissionModule psem = ship.trail.emission;
-            psem.rateOverTime = originalEmissionRoT.constant * 5f;
+                ParticleSystem.EmissionModule psem = trail.emission;
+                psem.rateOverTime = originalEmissionRoT.constant * 5f;
+            }
         }
 
         if(fuel > 0f) {
@@ -41,13 +43,15 @@ public class ShipModuleTurbo : ShipModule {
         ship.attributes.acceleration = originalAcceleration;
         ship.attributes.speed = originalSpeed;
 
-        if(ship.trail) {
-            ParticleSystem.MainModule psmm = ship.trail.main;
-            psmm.startColor = originalTrailColor;
-            psmm.startSpeed = originalStartSpeed;
+        foreach(ParticleSystem trail in ship.trails) {
+            if(trail) {
+                ParticleSystem.MainModule psmm = trail.main;
+                psmm.startColor = originalTrailColor;
+                psmm.startSpeed = originalStartSpeed;
 
-            ParticleSystem.EmissionModule psem = ship.trail.emission;
-            psem.rateOverTime = originalEmissionRoT;
+                ParticleSystem.EmissionModule psem = trail.emission;
+                psem.rateOverTime = originalEmissionRoT;
+            }
         }
     }
 

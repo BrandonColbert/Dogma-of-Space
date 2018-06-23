@@ -12,6 +12,12 @@ public class ShipAttributes : Damageable {
         base.Start();
         shieldCooldown = new TimerTask();
         ship = GetComponent<Ship>();
+
+        health = maxHealth;
+        shields = maxShields;
+
+        if(ship.statusBar != null) ship.statusBar.SetHealth(health, maxHealth);
+        if(ship.statusBar) ship.statusBar.SetShields(shields, maxShields);
     }
 
     public override void Damage(float value) {
