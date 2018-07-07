@@ -1,6 +1,15 @@
 using UnityEngine;
 
 public class PlayerFighterController : FighterController {
+    public Player player;
+
+    void Start() {
+        if(!player) {
+            Destroy(this);
+            throw new UnassignedReferenceException("Player not assigned in player fighter controller");
+        }
+    }
+
     public override void PhysicsLogic(Fighter fighter) {
         fighter.Move(Input.GetAxis("Vertical"), -Input.GetAxis("Horizontal"));
 
@@ -46,6 +55,11 @@ public class PlayerFighterController : FighterController {
 
         fighter.Aim(Camera.main.ScreenToWorldPoint(Input.mousePosition));
     	if(Input.GetMouseButton(0)) fighter.Fire();
+
+        if(Input.GetKeyDown(KeyCode.K)) {
+            fighter.attributes.Kill();
+            if(player.spawnOnScriptStart) player.Spawn();
+        }
     }
 
     public override void Logic(Fighter fighter) {}

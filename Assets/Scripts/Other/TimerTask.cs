@@ -1,5 +1,6 @@
 using UnityEngine;
 
+[System.Serializable]
 public class TimerTask {
     private float interval;
     private float lastTime;
@@ -44,5 +45,9 @@ public class TimerTask {
 
     public float Till() {
         return (lastTime + interval) - Time.time;
+    }
+
+    public float Last() {
+        return lastTime;
     }
 }

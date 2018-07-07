@@ -15,7 +15,7 @@ public class Damageable : MonoBehaviour {
     }
 
     private Vector2 _lastVelocity;
-    private Rigidbody2D __rb__;
+    protected Rigidbody2D __rb__;
 
     public virtual void Damage(float value) {
         health -= value;

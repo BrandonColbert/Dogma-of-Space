@@ -23,9 +23,23 @@ public class Ship : MonoBehaviour {
         shipID = GetInstanceID();
         rb = gameObject.GetComponent<Rigidbody2D>();
         attributes = GetComponent<ShipAttributes>();
-        if(!attributes.HasKillCallback()) attributes.OnKill(RemoveWhenKilled);
-        if(trails.Length > 0) foreach(ParticleSystem trail in trails) trail.Stop();
+
+        if(!attributes.HasKillCallback()) {
+            attributes.OnKill(RemoveWhenKilled);
+        }
+
+        if(trails.Length > 0) foreach(ParticleSystem trail in trails) {
+            trail.Stop();
+        }
+
         ships.Add(this);
+    }
+
+    public void SetMinimap(GameObject minimapIconPrefab) {
+        GameObject mi = Instantiate(minimapIconPrefab);
+        mi.transform.parent = transform;
+        mi.transform.rotation = Quaternion.identity;
+        mi.transform.position = Vector3.zero;
     }
 
     public bool RemoveWhenKilled(Damageable d) {

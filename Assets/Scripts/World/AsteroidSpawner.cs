@@ -23,6 +23,8 @@ public class AsteroidSpawner : MonoBehaviour {
     public float minStartingSpeed = 0f, maxStartingSpeed = 250f;
     [Tooltip("Whether or not spawnpoints should be pushed outwards from the spawner's center to fit keep them within the asteroid seperation distance (May improve loading speed)")]
     public bool pushOutToFit = false;
+    [Tooltip("When enabled, all the meshes are combined together to make one asteroid")]
+    public bool clumpMeshes = false;
 
     void Start() {
         SpawnAsteroids();
@@ -67,13 +69,33 @@ public class AsteroidSpawner : MonoBehaviour {
 #if DEBUG_SPAWNS
         Debug.Log("Finished fitting asteroids");
 #endif
-        foreach(Vector2 v in spawnpoints) {
+
+        CombineInstance[] supermesh = new CombineInstance[spawnpoints.Length];
+
+        Transform parent = transform;
+        while(parent.parent != null) parent = parent.parent;
+
+        for(int i = 0; i < spawnpoints.Length; i++) {
+            Vector2 v = spawnpoints[i];
             GameObject asteroid = Instantiate(asteroidPrefab);
+
             asteroid.name = asteroidPrefab.name;
             asteroid.transform.parent = transform;
             asteroid.transform.localPosition = v;
+            asteroid.transform.SetParent(parent, true);
 
             asteroid.GetComponent<AsteroidGenerator>().GenerateAsteroid(MathHelper.Rand(asteroidMinSides, asteroidMaxSides), MathHelper.Rand(asteroidMinRadius, asteroidMaxRadius));
+
+            if(clumpMeshes) {
+                asteroid.transform.position -= transform.position;
+
+                supermesh[i].mesh = asteroid.GetComponent<MeshFilter>().mesh;
+                supermesh[i].transform = asteroid.transform.localToWorldMatrix;
+
+                Destroy(asteroid);
+                continue;
+            }
+
             asteroid.GetComponent<Rigidbody2D>().mass = asteroid.GetComponent<BreakableObject>().GetArea() * asteroidDensity;
             asteroid.GetComponent<BreakableObject>().maxHealth = asteroid.GetComponent<Rigidbody2D>().mass * healthToMassRatio;
             asteroid.GetComponent<BreakableObject>().FormatBreakable();
@@ -84,14 +106,30 @@ public class AsteroidSpawner : MonoBehaviour {
                 MathHelper.Rand(minStartingSpeed, maxStartingSpeed) * (MathHelper.Rand(-1f, 1f) < 0 ? -1 : 1)
             ) * asteroid.GetComponent<Rigidbody2D>().mass);
         }
+
+        if(clumpMeshes) {
+            (gameObject.GetComponent<MeshRenderer>() ? gameObject.GetComponent<MeshRenderer>() : gameObject.AddComponent<MeshRenderer>()).materials = asteroidPrefab.GetComponent<MeshRenderer>().sharedMaterials;
+            MeshFilter mf = gameObject.GetComponent<MeshFilter>() ? gameObject.GetComponent<MeshFilter>() : gameObject.AddComponent<MeshFilter>();
+            mf.mesh = new Mesh();
+            mf.mesh.CombineMeshes(supermesh);
+            //(gameObject.GetComponent<BoxCollider2D>() ? gameObject.GetComponent<BoxCollider2D>() : gameObject.AddComponent<BoxCollider2D>()).size = new Vector2(width, height);
+        }
     }
 
-    void OnDrawGizmos() {
-        Gizmos.color = Color.green;
-
+    void Outline() {
         Gizmos.DrawLine(transform.position + new Vector3(width / 2f, height / 2f), transform.position + new Vector3(-width / 2f, height / 2f));
         Gizmos.DrawLine(transform.position + new Vector3(width / 2f, -height / 2f), transform.position + new Vector3(-width / 2f, -height / 2f));
         Gizmos.DrawLine(transform.position + new Vector3(width / 2f, height / 2f), transform.position + new Vector3(width / 2f, -height / 2f));
         Gizmos.DrawLine(transform.position + new Vector3(-width / 2f, height / 2f), transform.position + new Vector3(-width / 2f, -height / 2f));
+    }
+
+    void OnDrawGizmos() {
+        Gizmos.color = new Color(0.25f, 0.125f, 0f);
+        Outline();
+    }
+
+    void OnDrawGizmosSelected() {
+        Gizmos.color = new Color(1f, 0.502f, 0f);
+        Outline();
     }
 }

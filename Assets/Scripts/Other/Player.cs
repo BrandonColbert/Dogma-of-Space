@@ -5,6 +5,7 @@ public class Player : MonoBehaviour {
     public bool spawnOnScriptStart = false;
     public CameraFollow cameraOnShip;
     public ShipStatusBar statusbar;
+    public GameObject minimapIcon;
     public GameObject shipArchetype;
 
     [HideInInspector]
@@ -25,7 +26,10 @@ public class Player : MonoBehaviour {
 
         ship = shipObject.GetComponent<Ship>();
         ship.statusBar = statusbar;
-        ship.controller = shipObject.AddComponent<PlayerFighterController>();
+        ship.SetMinimap(minimapIcon);
+        PlayerFighterController pfc = shipObject.AddComponent<PlayerFighterController>();
+        pfc.player = this;
+        ship.controller = pfc;
 
         cameraOnShip.target = shipObject;
     }

@@ -14,6 +14,7 @@ public class SpawnWave : MonoBehaviour {
     [Tooltip("Area in which to spawn enemies")]
     public float width = 100f, height = 100f;
     public Text textField;
+    public GameObject enemyMinimapIcon;
     public int currentWaveNumber = 0;
     public Player[] players;
     public Wave[] waves;
@@ -97,6 +98,7 @@ public class SpawnWave : MonoBehaviour {
                 enemy.transform.localPosition = spawnpoints[i];
                 enemy.transform.eulerAngles = Vector3.forward * MathHelper.Rand(0f, 360f);
                 enemy.GetComponent<Ship>().controller = enemy.AddComponent<EnemyShipAI>();
+                enemy.GetComponent<Ship>().SetMinimap(enemyMinimapIcon);
                 enemy.GetComponent<Damageable>().OnKill(OnEnemyDeath);
                 wave.enemies.Add(enemy);
                 totalEnemies++;

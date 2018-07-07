@@ -5,7 +5,8 @@ public class ShipAttributes : Damageable {
     public float maxShields = 100f, shields, shieldRepairRate = 5f, shieldRepairCooldown = 10f;
     public float speed = 10f, acceleration = 5f, handling = 100f;
 
-    private TimerTask shieldCooldown;
+    [HideInInspector]
+    public TimerTask shieldCooldown;
     private Ship ship;
 
     public override void Start() {

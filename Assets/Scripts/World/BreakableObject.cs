@@ -30,6 +30,9 @@ public class BreakableObject : Damageable {
         }
     }
 
+    [Tooltip("Whether or not the object can be destroyed currently")]
+    public bool indestructible = false;
+
     [Tooltip("The minimum area required for a fracture to spawn")]
     public float minFractureArea = 0.1f;
 
@@ -425,6 +428,10 @@ public class BreakableObject : Damageable {
         }
 
         Destroy(gameObject);
+    }
+
+    public override void Damage(float value) {
+        if(!indestructible) base.Damage(value);
     }
 
     void OnDrawGizmosSelected() {
