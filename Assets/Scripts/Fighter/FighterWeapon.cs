@@ -7,6 +7,7 @@ public class FighterWeapon : MonoBehaviour {
 
     public GameObject projectile;
     public ParticleSystem particleEffect;
+    public GameObject explosionEffect;
     public Vector2 fireLocation;
     public Vector2 fireDirection;
     public float maxShellDistance = 250f;
@@ -83,6 +84,12 @@ public class FighterWeapon : MonoBehaviour {
         }
     }
 
+    protected void ExplodeAt(Vector3 point) {
+        GameObject o = Instantiate(explosionEffect, point, Quaternion.identity);
+        o.name = explosionEffect.name;
+        o.GetComponent<ParticleSystem>().Emit(UnityEngine.Random.Range(20, 30));
+    }
+
     public virtual void ShellCollisionLogic(Shell shell, GameObject collided, bool isShip, Collision2D collision) {
         if(isShip && collided.GetComponent<Ship>().shipID == shell.source.shipID) {
             Physics2D.IgnoreCollision(collision.collider, collision.otherCollider);
@@ -90,6 +97,7 @@ public class FighterWeapon : MonoBehaviour {
             if(collided.GetComponent<Shell>().source.shipID == shell.source.shipID) {
                 Physics2D.IgnoreCollision(collision.collider, collision.otherCollider);
             } else {
+                ExplodeAt(shell.transform.position);
                 Destroy(collided);
                 Destroy(shell.gameObject);
             }
@@ -101,8 +109,10 @@ public class FighterWeapon : MonoBehaviour {
             }
             
             collided.GetComponent<Damageable>().Damage(fireDamage);
+            ExplodeAt(shell.transform.position);
             if(!pierces) Destroy(shell.gameObject);
         } else {
+            ExplodeAt(shell.transform.position);
             Destroy(shell.gameObject);
         }
     }
@@ -117,6 +127,8 @@ public class FighterWeapon : MonoBehaviour {
                 }
 
                 hit.GetComponent<Damageable>().Damage(fireDamage);
+                ExplodeAt(shell.transform.position);
+                //TODO: Does the shell need to be destroyed?
             }
         };
 

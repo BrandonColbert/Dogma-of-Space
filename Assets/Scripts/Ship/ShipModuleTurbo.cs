@@ -3,7 +3,7 @@ using UnityEngine;
 public class ShipModuleTurbo : ShipModule {
     public Color turboTrailColor = Color.blue;
     public float accelerationModifier = 5f, speedModifier = 2f;
-    public float fuelCapacity = 100f, fuel = -1;
+    public float drainRate = 8f;
     private float lastUseTime;
     private float originalAcceleration, originalSpeed;
     private UnityEngine.ParticleSystem.MinMaxGradient originalTrailColor;
@@ -31,7 +31,7 @@ public class ShipModuleTurbo : ShipModule {
             }
         }
 
-        if(fuel > 0f) {
+        if(charge > 0f) {
             ship.attributes.acceleration *= accelerationModifier;
             ship.attributes.speed *= speedModifier;
         }
@@ -58,11 +58,10 @@ public class ShipModuleTurbo : ShipModule {
     public override void DuringUse(Ship ship) {
         base.DuringUse(ship);
 
-        if(fuel > 0f) {
-            fuel -= 20f * Time.deltaTime;
-            if(ship.statusBar) ship.statusBar.SetSpecial(fuel, fuelCapacity);
+        if(charge > 0f) {
+            charge -= drainRate * Time.deltaTime;
         } else {
-            fuel = 0f;
+            charge = 0f;
             OnDeactivate(ship);
         }
 
@@ -70,16 +69,15 @@ public class ShipModuleTurbo : ShipModule {
     }
 
     public override void DuringNoUse(Ship ship) {
-        if(fuel < 0f) {
-            fuel = fuelCapacity;
-            if(ship.statusBar) ship.statusBar.SetSpecial(fuel, fuelCapacity);
+        base.DuringNoUse(ship);
+        
+        if(charge < 0f) {
+            charge = max;
         }
 
-        if(fuel < fuelCapacity && Time.time - lastUseTime > 5f) {
-            fuel += Time.deltaTime * 10f;
-            if(fuel > fuelCapacity) fuel = fuelCapacity;
-
-            if(ship.statusBar) ship.statusBar.SetSpecial(fuel, fuelCapacity);
+        if(charge < max && Time.time - lastUseTime > 5f) {
+            charge += Time.deltaTime * 10f;
+            if(charge > max) charge = max;
         }
     }
 

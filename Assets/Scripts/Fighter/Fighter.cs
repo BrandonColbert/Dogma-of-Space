@@ -37,7 +37,16 @@ public class Fighter : Ship {
         } else {
             foreach(FighterWeapon weapon in weapons) {
                 weapon.Fire();
+                if(module) module.OnWeaponFire(weapon);
             }
+        }
+    }
+
+    public bool ReadyToFire() {
+        if(alternatingWeapons) {
+            return weapons[lastWeapon].timer.Ready() && weapons[currentWeapon].Fire();
+        } else {
+            return true;
         }
     }
 }

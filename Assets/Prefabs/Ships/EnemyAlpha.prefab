@@ -405,14 +405,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4e14375e085d8d74792f91588197d01b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 80
+  maxHealth: 20
   health: 0
   isDead: 0
-  maxShields: 0
+  maxShields: 80
   shields: 0
   shieldRepairRate: 20
   shieldRepairCooldown: 10
-  speed: 4
+  speed: 7
   acceleration: 2
   handling: 100
 --- !u!114 &114399728128649978
@@ -427,8 +427,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   statusBar: {fileID: 0}
-  minimapIcon: {fileID: 1894582406897580, guid: 74287e307586b3a47ade5095b7541731,
-    type: 2}
   trails:
   - {fileID: 198436265282805230}
   controller: {fileID: 0}
@@ -453,6 +451,8 @@ MonoBehaviour:
   ship: {fileID: 114399728128649978}
   projectile: {fileID: 1944321403487944, guid: 5267b06a01108d14893917a42eb55853, type: 2}
   particleEffect: {fileID: 198581063040610622}
+  explosionEffect: {fileID: 1209173556913804, guid: a4fd570efd98b22408e971f5e5bffa27,
+    type: 2}
   fireLocation: {x: 0, y: 0.3}
   fireDirection: {x: 0, y: 0}
   maxShellDistance: 250
@@ -489,6 +489,8 @@ MonoBehaviour:
   ship: {fileID: 114399728128649978}
   projectile: {fileID: 1944321403487944, guid: 5267b06a01108d14893917a42eb55853, type: 2}
   particleEffect: {fileID: 198608366324681616}
+  explosionEffect: {fileID: 1209173556913804, guid: a4fd570efd98b22408e971f5e5bffa27,
+    type: 2}
   fireLocation: {x: 0, y: 0.3}
   fireDirection: {x: 0, y: 0}
   maxShellDistance: 250

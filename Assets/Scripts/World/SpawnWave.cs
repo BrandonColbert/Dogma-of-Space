@@ -12,7 +12,7 @@ public class SpawnWave : MonoBehaviour {
     }
 
     [Tooltip("Area in which to spawn enemies")]
-    public float width = 100f, height = 100f;
+    public int width = 100, height = 100;
     public Text textField;
     public GameObject enemyMinimapIcon;
     public int currentWaveNumber = 0;

@@ -76,6 +76,10 @@ public class MathHelper {
 
     ///<summary>Random from min and max</summary>
     public static float Rand(float min, float max) {
+        if(min == max) {
+            return min;
+        }
+
         byte[] data = new byte[4];
         rng.GetBytes(data);
         float next = Mathf.Abs((float)BitConverter.ToInt32(data, 0) / (float)int.MaxValue);
@@ -85,7 +89,15 @@ public class MathHelper {
 
     ///<summary>Random from min and max</summary>
     public static int Rand(int min, int max) {
-        return (int)Rand((float)min, (float)max);
+        if(min == max) {
+            return min;
+        }
+
+        byte[] data = new byte[4];
+        rng.GetBytes(data);
+        float next = Mathf.Abs((float)BitConverter.ToInt32(data, 0) / (float)int.MaxValue);
+
+        return (int)(min + next * (max - min));
     }
 
     ///<summary>Rotates the point around the pivot.false Taken from here: http://answers.unity.com/comments/1434008/view.html</summary>

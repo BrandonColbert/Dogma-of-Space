@@ -17,7 +17,7 @@ public class ShipAttributes : Damageable {
         health = maxHealth;
         shields = maxShields;
 
-        if(ship.statusBar != null) ship.statusBar.SetHealth(health, maxHealth);
+        if(ship.statusBar) ship.statusBar.SetHealth(health, maxHealth);
         if(ship.statusBar) ship.statusBar.SetShields(shields, maxShields);
     }
 

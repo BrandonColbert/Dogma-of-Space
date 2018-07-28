@@ -32,6 +32,11 @@ public class Ship : MonoBehaviour {
             trail.Stop();
         }
 
+        if(module && module.GetDefaultState()) {
+            module.isActive = true;
+            module.OnActivate(this);
+        }
+
         ships.Add(this);
     }
 

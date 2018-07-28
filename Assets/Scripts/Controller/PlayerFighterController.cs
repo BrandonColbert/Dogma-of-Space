@@ -2,11 +2,16 @@ using UnityEngine;
 
 public class PlayerFighterController : FighterController {
     public Player player;
+    private Color? specialColor = null;
 
     void Start() {
         if(!player) {
             Destroy(this);
             throw new UnassignedReferenceException("Player not assigned in player fighter controller");
+        }
+
+        if(specialColor == null) {
+            specialColor = player.statusbar.specialTexture.color;
         }
     }
 
@@ -17,6 +22,7 @@ public class PlayerFighterController : FighterController {
             switch(fighter.module.GetModuleType()) {
                 case ShipModule.ModuleType.ACTIVE:
                     if(Input.GetKeyDown(KeyCode.Space)) fighter.module.OnActivate(fighter);
+                    else fighter.module.DuringNoUse(fighter);
                     break;
                 case ShipModule.ModuleType.HELD:
                     if(Input.GetKey(KeyCode.Space)) {
@@ -35,12 +41,12 @@ public class PlayerFighterController : FighterController {
                     break;
                 case ShipModule.ModuleType.TOGGLE:
                     if(Input.GetKeyDown(KeyCode.Space)) {
-                        fighter.module.isActive = !fighter.module.isActive;
-
                         if(fighter.module.isActive) {
-                            fighter.module.OnActivate(fighter);
-                        } else {
+                            fighter.module.isActive = false;
                             fighter.module.OnDeactivate(fighter);
+                        } else {
+                            fighter.module.isActive = true;
+                            fighter.module.OnActivate(fighter);
                         }
                     }
 
@@ -62,5 +68,7 @@ public class PlayerFighterController : FighterController {
         }
     }
 
-    public override void Logic(Fighter fighter) {}
+    public override void Logic(Fighter fighter) {
+        if(fighter.module) fighter.statusBar.specialTexture.color = specialColor.Value * (fighter.module.isActive ? 1.75f : 1f);
+    }
 }

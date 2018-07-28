@@ -390,8 +390,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   statusBar: {fileID: 0}
-  minimapIcon: {fileID: 1894582406897580, guid: 74287e307586b3a47ade5095b7541731,
-    type: 2}
   trails:
   - {fileID: 198427753773749418}
   controller: {fileID: 0}
@@ -420,7 +418,7 @@ MonoBehaviour:
   shields: 0
   shieldRepairRate: 20
   shieldRepairCooldown: 10
-  speed: 10
+  speed: 7
   acceleration: 3
   handling: 100
 --- !u!114 &114564702983902458
@@ -437,6 +435,8 @@ MonoBehaviour:
   ship: {fileID: 114292161489208178}
   projectile: {fileID: 1944321403487944, guid: 5267b06a01108d14893917a42eb55853, type: 2}
   particleEffect: {fileID: 198764450875350608}
+  explosionEffect: {fileID: 1209173556913804, guid: a4fd570efd98b22408e971f5e5bffa27,
+    type: 2}
   fireLocation: {x: 0, y: 0.3}
   fireDirection: {x: 0, y: 0}
   maxShellDistance: 250
@@ -444,7 +444,7 @@ MonoBehaviour:
   hitscan: 0
   homing: 0
   pierces: 0
-  fireDamage: 15
+  fireDamage: 20
   fireRate: 7
   projectileSpeed: 45
 --- !u!114 &114641939416330934
@@ -507,6 +507,8 @@ MonoBehaviour:
   ship: {fileID: 114292161489208178}
   projectile: {fileID: 1944321403487944, guid: 5267b06a01108d14893917a42eb55853, type: 2}
   particleEffect: {fileID: 198754189837849202}
+  explosionEffect: {fileID: 1209173556913804, guid: a4fd570efd98b22408e971f5e5bffa27,
+    type: 2}
   fireLocation: {x: 0, y: 0.3}
   fireDirection: {x: 0, y: 0}
   maxShellDistance: 250
@@ -514,7 +516,7 @@ MonoBehaviour:
   hitscan: 0
   homing: 0
   pierces: 0
-  fireDamage: 15
+  fireDamage: 20
   fireRate: 7
   projectileSpeed: 45
 --- !u!198 &198427753773749418
