@@ -3,13 +3,16 @@ using System.Collections;
 using UnityEngine;
 
 public class ShipModuleFireMode : ShipModule {
+    private float[] damages = null;
+    private float[] firerates = null;
+
     public override void OnActivate(Ship ship) {
         base.OnActivate(ship);
-        if(ship is Fighter) ((Fighter)ship).alternatingWeapons = true;
+        ToggleAlternating(ship, false);
     }
     public override void OnDeactivate(Ship ship) {
         base.OnDeactivate(ship);
-        if(ship is Fighter) ((Fighter)ship).alternatingWeapons = false;
+        ToggleAlternating(ship, true);
     }
 
     public override void DuringUse(Ship ship) {
@@ -26,5 +29,34 @@ public class ShipModuleFireMode : ShipModule {
 
     public override string GetModuleName() {
         return "Fire Mode";
+    }
+
+    public void ToggleAlternating(Ship ship, bool state) {
+        if(ship is Fighter) {
+            FighterWeapon[] weapons = (ship as Fighter).weapons;
+
+            if(firerates == null) {
+                firerates = new float[weapons.Length];
+
+                for(int i = 0; i < weapons.Length; i++) {
+                    firerates[i] = weapons[i].fireRate;
+                }
+            }
+
+            if(damages == null) {
+                damages = new float[weapons.Length];
+
+                for(int i = 0; i < weapons.Length; i++) {
+                    damages[i] = weapons[i].fireDamage;
+                }
+            }
+
+            for(int i = 0; i < weapons.Length; i++) {
+                weapons[i].fireRate = firerates[i] * (state ? 1f : 0.5f);
+                weapons[i].fireDamage = damages[i] * (state ? 1f : 1.5f);
+            }
+
+           (ship as Fighter).alternatingWeapons = state;
+        }
     }
 }

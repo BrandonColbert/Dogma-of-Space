@@ -3,7 +3,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class SpawnWave : MonoBehaviour {
+public class SpawnWave : Spawnable {
     [System.Serializable]
     public class Wave {
         public List<GameObject> enemyPrefabs;
@@ -22,7 +22,17 @@ public class SpawnWave : MonoBehaviour {
     private int enemiesLeft, totalEnemies, playersLeft;
 
     void Start() {
+        gameObject.SetActive(false);
+    }
+
+    public override void ClearSpawn() {
+        gameObject.SetActive(false);
+        currentWaveNumber = 0;
+    }
+
+    public override void Spawn() {
         StartWave(currentWaveNumber);
+        gameObject.SetActive(true);
     }
 
     bool OnEnemyDeath(Damageable enemy) {

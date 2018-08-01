@@ -1,14 +1,21 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class StarSpawner : MonoBehaviour {
+public class StarSpawner : Spawnable {
     public int rows = 10, columns = 10;
     public float textureScale = 1f;
     public int tileSize = 1000;
     public int minStarsPerTile, maxStarsPerTile;
     public Texture2D[] starPresets;
-    
-    void Start() {
+
+    private List<GameObject> tiles = new List<GameObject>();
+
+    public override void ClearSpawn() {
+        foreach(GameObject o in tiles) Destroy(o);
+    }
+
+    public override void Spawn() {
         //for(int i = 0; i < rows; i++) for(int j = 0; j < columns; j++) {
             GameObject o = CreateTile(tileSize, tileSize);
             o.transform.parent = transform;
@@ -20,6 +27,8 @@ public class StarSpawner : MonoBehaviour {
             v.x *= rows;
             v.y *= columns;
             o.GetComponent<SpriteRenderer>().size = v;
+
+            tiles.Add(o);
         //}
     }
 

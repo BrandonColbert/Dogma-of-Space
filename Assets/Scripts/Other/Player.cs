@@ -1,23 +1,24 @@
 using UnityEngine;
 
-public class Player : MonoBehaviour {
+public class Player : Spawnable {
     public string playerName = "Player";
-    public bool spawnOnScriptStart = false;
     public CameraFollow cameraOnShip;
     public ShipStatusBar statusbar;
     public GameObject minimapIcon;
     public GameObject shipArchetype;
 
-    [HideInInspector]
-    public Ship ship;
+    [HideInInspector] public Ship ship;
+    private Color specialColor;
 
     void Start() {
-        if(spawnOnScriptStart) {
-            Spawn();
-        }
+        specialColor = statusbar.specialTexture.color;
     }
 
-    public void Spawn() {
+    public override void ClearSpawn() {
+        if(ship) ship.attributes.Kill();
+    }
+
+    public override void Spawn() {
         GameObject shipObject = Instantiate(shipArchetype);
         shipObject.transform.position = transform.position;
         shipObject.transform.rotation = transform.rotation;
@@ -30,6 +31,7 @@ public class Player : MonoBehaviour {
         PlayerFighterController pfc = shipObject.AddComponent<PlayerFighterController>();
         pfc.player = this;
         ship.controller = pfc;
+        pfc.specialColor = specialColor;
 
         cameraOnShip.target = shipObject;
     }

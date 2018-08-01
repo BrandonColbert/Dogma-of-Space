@@ -2,7 +2,7 @@
 
 using UnityEngine;
 
-public class AsteroidSpawner : MonoBehaviour {
+public class AsteroidSpawner : Spawnable {
     [Tooltip("Used to load a basic unaltered asteroid")]
     public GameObject asteroidPrefab;
     [Tooltip("Area in which to spawn asteroids (Not guaranteed with a high asteroid count and low seperation distance)")]
@@ -26,11 +26,11 @@ public class AsteroidSpawner : MonoBehaviour {
     [Tooltip("When enabled, all the meshes are combined together to make one asteroid")]
     public bool clumpMeshes = false;
 
-    void Start() {
-        SpawnAsteroids();
+    public override void ClearSpawn() {
+        foreach(Transform t in transform.parent) if(t.name.Equals(asteroidPrefab.name)) Destroy(t.gameObject);
     }
 
-    void SpawnAsteroids() {
+    public override void Spawn() {
         int amount = MathHelper.Rand(minAsteroidCount, maxAsteroidCount);
         Vector2[] spawnpoints = new Vector2[amount];
         bool relapse = true;

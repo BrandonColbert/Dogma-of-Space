@@ -27,6 +27,8 @@ public class ShipModuleWarp : ShipModule {
         float cost = Vector2.Distance(initial, final) / 2f;
         if(charge < cost) yield break;
 
+        isActive = true;
+
         Vector3 angles = ship.transform.eulerAngles;
         angles.z = Mathf.Rad2Deg * Mathf.Atan2(final.y - initial.y, final.x - initial.x) - 90f;
         ship.transform.eulerAngles = angles;
@@ -49,6 +51,7 @@ public class ShipModuleWarp : ShipModule {
 
         if(charge < 0f) charge = 0f;
         trail.enabled = false;
+        isActive = false;
     }
 
     public override void OnDeactivate(Ship ship) {
