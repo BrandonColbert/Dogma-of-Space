@@ -3,16 +3,20 @@ using System.Collections;
 using UnityEngine;
 
 public class ShipModuleFireMode : ShipModule {
+    public AudioClip selectSound, deselectSound;
+
     private float[] damages = null;
     private float[] firerates = null;
 
     public override void OnActivate(Ship ship) {
         base.OnActivate(ship);
         ToggleAlternating(ship, false);
+        AudioManager.Play(selectSound, ship.transform.position);
     }
     public override void OnDeactivate(Ship ship) {
         base.OnDeactivate(ship);
         ToggleAlternating(ship, true);
+        AudioManager.Play(deselectSound, ship.transform.position);
     }
 
     public override void DuringUse(Ship ship) {

@@ -3,13 +3,17 @@ using System.Collections;
 using UnityEngine;
 
 public class ShipModuleRepair : ShipModule {
+    public AudioClip selectSound, deselectSound;
+
     public float repairCost = 1.5f;
 
     public override void OnActivate(Ship ship) {
         base.OnActivate(ship);
+        AudioManager.Play(selectSound, ship.transform.position);
     }
     public override void OnDeactivate(Ship ship) {
         base.OnDeactivate(ship);
+        AudioManager.Play(deselectSound, ship.transform.position);
     }
 
     public override void DuringUse(Ship ship) {

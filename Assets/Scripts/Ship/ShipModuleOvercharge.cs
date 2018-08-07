@@ -3,6 +3,8 @@ using System.Collections;
 using UnityEngine;
 
 public class ShipModuleOvercharge : ShipModule {
+    public AudioClip selectSound, deselectSound;
+
     public float fireRateMultiplier = 10f;
     public float depleteRate = 5f;
     public float rechargeRate = 2f;
@@ -18,9 +20,11 @@ public class ShipModuleOvercharge : ShipModule {
 
     public override void OnActivate(Ship ship) {
         base.OnActivate(ship);
+        AudioManager.Play(selectSound, ship.transform.position);
     }
     public override void OnDeactivate(Ship ship) {
         base.OnDeactivate(ship);
+        AudioManager.Play(deselectSound, ship.transform.position);
         ToggleOvercharge(ship, false);
     }
 

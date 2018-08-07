@@ -3,6 +3,8 @@ using System.Collections;
 using UnityEngine;
 
 public class ShipModuleWarp : ShipModule {
+    public AudioClip warpSound;
+
     public GameObject trailPrefab;
     private TrailRenderer trail;
 
@@ -28,6 +30,7 @@ public class ShipModuleWarp : ShipModule {
         if(charge < cost) yield break;
 
         isActive = true;
+        AudioManager.Play(warpSound, ship.transform.position);
 
         Vector3 angles = ship.transform.eulerAngles;
         angles.z = Mathf.Rad2Deg * Mathf.Atan2(final.y - initial.y, final.x - initial.x) - 90f;

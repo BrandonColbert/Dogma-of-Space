@@ -6,7 +6,9 @@ public class ShieldEffect : Indestructable {
     public ShipAttributes attributes;
     public float fadeDelay = 0.25f;
     public float fadeSteps = 100f;
+    public AudioClip destroySound;
 
+    private bool areShieldsDestroyed;
     private SpriteRenderer srender;
     
     public Color color {
@@ -30,6 +32,8 @@ public class ShieldEffect : Indestructable {
         
         ChangeAlpha(0f);
         shieldCollider.enabled = false;
+
+        areShieldsDestroyed = true;
     }
 
     void ChangeAlpha(float a) {
@@ -57,13 +61,23 @@ public class ShieldEffect : Indestructable {
 
     void Update() {
         if(attributes.shields <= 0f) {
+            if(!areShieldsDestroyed) {
+                AudioManager.Play(destroySound, transform.position, 2f);
+            }
+
+            areShieldsDestroyed = true;
+
             StopCoroutine("ShieldFlash");
             ChangeAlpha(0f);
             shieldCollider.enabled = false;
-        } else if(attributes.shields != attributes.maxShields && (Time.time - attributes.shieldCooldown.Last()) <= fadeDelay) {
-            StopCoroutine("ShieldFlash");
-            shieldCollider.enabled = true;
-            StartCoroutine("ShieldFlash");
+        } else {
+            areShieldsDestroyed = false;
+
+            if(attributes.shields != attributes.maxShields && (Time.time - attributes.shieldCooldown.Last()) <= fadeDelay) {
+                StopCoroutine("ShieldFlash");
+                shieldCollider.enabled = true;
+                StartCoroutine("ShieldFlash");
+            }
         }
     }
 }

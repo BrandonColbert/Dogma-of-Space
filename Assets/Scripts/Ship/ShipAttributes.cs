@@ -17,8 +17,8 @@ public class ShipAttributes : Damageable {
         health = maxHealth;
         shields = maxShields;
 
-        if(ship.statusBar) ship.statusBar.SetHealth(health, maxHealth);
-        if(ship.statusBar) ship.statusBar.SetShields(shields, maxShields);
+        if(ship.statusBar && ship.statusBar.isActiveAndEnabled) ship.statusBar.SetHealth(health, maxHealth);
+        if(ship.statusBar && ship.statusBar.isActiveAndEnabled) ship.statusBar.SetShields(shields, maxShields);
     }
 
     public override void Damage(float value) {
@@ -26,12 +26,15 @@ public class ShipAttributes : Damageable {
             shields -= value;
             value = shields < 0 ? -shields : 0;
             shieldCooldown.Set(Time.time);
-            if(ship.statusBar) ship.statusBar.SetShields(shields, maxShields);
+            if(ship.statusBar && ship.statusBar.isActiveAndEnabled) ship.statusBar.SetShields(shields, maxShields);
+            if(ship.shieldDamageSound) AudioManager.Play(ship.shieldDamageSound, ship.transform.position, UnityEngine.Random.Range(1f, 1.75f));
+        } else {
+            if(ship.damageSound) AudioManager.Play(ship.damageSound, ship.transform.position, UnityEngine.Random.Range(1f, 1.75f));
         }
 
         if(value > 0) {
             base.Damage(value);
-            if(ship.statusBar) ship.statusBar.SetHealth(health, maxHealth);
+            if(ship.statusBar && ship.statusBar.isActiveAndEnabled) ship.statusBar.SetHealth(health, maxHealth);
         }
     }
 
@@ -39,7 +42,7 @@ public class ShipAttributes : Damageable {
         if(shields < maxShields && shieldCooldown.Interval(shieldRepairCooldown).Ready()) {
             shields += shieldRepairRate * Time.deltaTime;
             if(shields > maxShields) shields = maxShields;
-            if(ship.statusBar) ship.statusBar.SetShields(shields, maxShields);
+            if(ship.statusBar && ship.statusBar.isActiveAndEnabled) ship.statusBar.SetShields(shields, maxShields);
         }
     }
 }

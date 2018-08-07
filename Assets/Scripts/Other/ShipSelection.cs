@@ -6,6 +6,7 @@ using UnityEngine.UI;
 public class ShipSelection : MonoBehaviour {
     public Player player;
     public GameObject selectionPanel;
+    public ShipStatSpecifier statSpecifier;
 
     public float scale = 100f;
     public float initialHorizontalPad = 20f, initialVerticalPad = 20f;
@@ -17,8 +18,11 @@ public class ShipSelection : MonoBehaviour {
     public GameObject[] shipPrefabs;
 
     private int selection = 0;
+    private AudioSource selectSound;
 
     void Start() {
+        selectSound = GetComponent<AudioSource>();
+
         int column = 0, row = 0;
 
         foreach(GameObject p in shipPrefabs) {
@@ -29,14 +33,12 @@ public class ShipSelection : MonoBehaviour {
             }
 
             foreach(FighterWeapon s in o.GetComponent<Fighter>().weapons) {
-                s.gameObject.transform.localRotation = Quaternion.identity;
+                if(s.aimable) s.gameObject.transform.localRotation = Quaternion.identity;
                 Destroy(s);
             }
 
             foreach(Component c in o.GetComponents(typeof(Component))) {
-                if(c.GetType() != typeof(Transform)) {
-                    try { Destroy(c); } catch(UnityException) {}
-                }
+                if(c is Behaviour) (c as Behaviour).enabled = false;
             }
 
             o.transform.localPosition = GetPos(column, row);
@@ -59,7 +61,31 @@ public class ShipSelection : MonoBehaviour {
             }
         }
 
-        Select();
+        Select(false);
+    }
+
+    void Update() {
+        if(DosMenu.isMenuOpen) {
+            if(Input.GetKeyDown(KeyCode.LeftArrow)) {
+                if(selection - 1 >= 0) selection--;
+                Select();
+            }
+
+            if(Input.GetKeyDown(KeyCode.RightArrow)) {
+                if(selection + 1 < shipPrefabs.Length) selection++;
+                Select();
+            }
+            
+            if(Input.GetKeyDown(KeyCode.DownArrow)) {
+                if(selection + columns < shipPrefabs.Length) selection += columns;
+                Select();
+            }
+            
+            if(Input.GetKeyDown(KeyCode.UpArrow)) {
+                if(selection - columns >= 0) selection -= columns;
+                Select();
+            }
+        }
     }
 
     Vector3 GetPos(int column, int row) {
@@ -79,11 +105,14 @@ public class ShipSelection : MonoBehaviour {
         Select();
     }
 
-    public void Select() {
+    public void Select(bool playSound = true) {
         player.shipArchetype = shipPrefabs[selection];
 
         int row = selection / columns;
         int column = selection - row * columns;
         selectionPanel.transform.localPosition = GetPos(column, row);
+
+        if(playSound) AudioManager.Play(selectSound);
+        statSpecifier.Display(player.shipArchetype.GetComponent<Ship>());
     }
 }

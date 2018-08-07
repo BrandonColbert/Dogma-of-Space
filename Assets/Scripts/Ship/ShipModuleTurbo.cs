@@ -1,6 +1,8 @@
 using UnityEngine;
 
 public class ShipModuleTurbo : ShipModule {
+    public AudioClip activationSound;
+
     public Color turboTrailColor = Color.blue;
     public float accelerationModifier = 5f, speedModifier = 2f;
     public float drainRate = 8f;
@@ -34,6 +36,9 @@ public class ShipModuleTurbo : ShipModule {
         if(charge > 0f) {
             ship.attributes.acceleration *= accelerationModifier;
             ship.attributes.speed *= speedModifier;
+            ship.engineVolumeModifier *= accelerationModifier;
+
+            AudioManager.Play(activationSound, ship.transform.position, 0.6f);
         }
     }
 
@@ -42,6 +47,7 @@ public class ShipModuleTurbo : ShipModule {
         
         ship.attributes.acceleration = originalAcceleration;
         ship.attributes.speed = originalSpeed;
+        ship.engineVolumeModifier = 1f;
 
         foreach(ParticleSystem trail in ship.trails) {
             if(trail) {

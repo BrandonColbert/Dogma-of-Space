@@ -78,7 +78,7 @@ public class StarSpawner : Spawnable {
         GameObject obj = new GameObject();
         obj.name = "StarField";
         obj.transform.localScale *= 10f;
-        obj.AddComponent<SpriteRenderer>().sprite = Sprite.Create(stars, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f));
+        obj.AddComponent<SpriteRenderer>().sprite = Sprite.Create(stars, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect);
 
         return obj;
     }

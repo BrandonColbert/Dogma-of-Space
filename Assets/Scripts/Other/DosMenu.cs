@@ -1,4 +1,6 @@
+using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class DosMenu : MonoBehaviour {
     [HideInInspector] public static bool isMenuOpen;
@@ -10,14 +12,24 @@ public class DosMenu : MonoBehaviour {
     public Spawnable[] spawners;
 
     private bool gameExists;
+    private AudioSource selectSound;
 
     void Start() {
+        selectSound = GetComponent<AudioSource>();
         ToggleMenu(true);
     }
 
     void Update() {
         if(gameExists && Input.GetKeyDown(KeyCode.Escape)) {
             ToggleMenu(!isMenuOpen);
+        }
+
+        if(isMenuOpen) {
+            if(Input.GetKeyDown(KeyCode.Return)) {
+                ButtonStartLevel();
+            } else if(Input.GetKeyDown(KeyCode.Backspace)) {
+                ButtonRestart();
+            }
         }
     }
 
@@ -35,15 +47,47 @@ public class DosMenu : MonoBehaviour {
         foreach(MonoBehaviour m in ingameScripts) m.enabled = !value;
     }
 
-    public void ButtonStart() {
+    public void ButtonStartLevel() {
+        AudioManager.Play(selectSound);
         ToggleMenu(false);
+
+        int currentWaveNumber = 0;
+
+        foreach(Spawnable s in spawners) {
+            if(s is SpawnWave) {
+                currentWaveNumber = (s as SpawnWave).currentWaveNumber;
+            }
+
+            s.ClearSpawn();
+        }
+
+        foreach(Spawnable s in spawners) {
+            if(s is SpawnWave) {
+                (s as SpawnWave).currentWaveNumber = currentWaveNumber;
+            }
+
+            s.Spawn();
+        }
+
+        gameExists = true;
+    }
+
+    public void ButtonRestart() {
+        AudioManager.Play(selectSound);
+        ToggleMenu(false);
+
         foreach(Spawnable s in spawners) s.ClearSpawn();
         foreach(Spawnable s in spawners) s.Spawn();
+
         gameExists = true;
     }
 
     public void ButtonExit() {
-        foreach(Spawnable s in spawners) s.ClearSpawn();
-        //Application.Quit();
+        foreach(Spawnable s in spawners) s.ClearSpawn(); //TODO: REMOVE ON FOR BUILDS
+        Application.Quit();
+    }
+
+    public void SliderVolume(Slider slider) {
+        AudioManager.volumeModifier = slider.value;
     }
 }

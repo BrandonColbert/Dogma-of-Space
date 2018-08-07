@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Fighter : Ship {
@@ -48,5 +49,9 @@ public class Fighter : Ship {
         } else {
             return true;
         }
+    }
+
+    public bool CanBeAimed() {
+        return weapons.Any(w => w.aimable);
     }
 }

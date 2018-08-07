@@ -8,6 +8,8 @@ public class FighterWeapon : MonoBehaviour {
     public GameObject projectile;
     public ParticleSystem particleEffect;
     public GameObject explosionEffect;
+    public AudioClip explosionSound;
+    public AudioClip fireSound;
     public Vector2 fireLocation;
     public Vector2 fireDirection;
     public float maxShellDistance = 250f;
@@ -51,8 +53,12 @@ public class FighterWeapon : MonoBehaviour {
                     shell.collisionLogic = delegate(Shell s, GameObject collided, bool isShip, Collision2D collision) { ShellCollisionLogic(s, collided, isShip, collision); };
                 }
 
-                if(particleEffect != null) {
+                if(particleEffect) {
                     particleEffect.Emit(UnityEngine.Random.Range(10, 20));
+                }
+
+                if(fireSound) {
+                    AudioManager.Play(fireSound, transform.position, UnityEngine.Random.Range(0.25f, 0.5f));
                 }
 
                 return true;
@@ -88,6 +94,10 @@ public class FighterWeapon : MonoBehaviour {
         GameObject o = Instantiate(explosionEffect, point, Quaternion.identity);
         o.name = explosionEffect.name;
         o.GetComponent<ParticleSystem>().Emit(UnityEngine.Random.Range(20, 30));
+        
+        if(explosionSound) {
+            AudioManager.Play(explosionSound, point, UnityEngine.Random.Range(0.2f, 0.4f));
+        }
     }
 
     public virtual void ShellCollisionLogic(Shell shell, GameObject collided, bool isShip, Collision2D collision) {

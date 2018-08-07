@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -19,7 +20,8 @@ public class SpawnWave : Spawnable {
     public Player[] players;
     public Wave[] waves;
 
-    private int enemiesLeft, totalEnemies, playersLeft;
+    private int totalEnemies, playersLeft;
+    private bool isRestarting;
 
     void Start() {
         gameObject.SetActive(false);
@@ -27,21 +29,15 @@ public class SpawnWave : Spawnable {
 
     public override void ClearSpawn() {
         gameObject.SetActive(false);
+        foreach(Transform t in transform) Destroy(t.gameObject);
         currentWaveNumber = 0;
+        playersLeft = 0;
+        totalEnemies = 0;
     }
 
     public override void Spawn() {
         StartWave(currentWaveNumber);
         gameObject.SetActive(true);
-    }
-
-    bool OnEnemyDeath(Damageable enemy) {
-        enemy.GetComponent<Ship>().RemoveWhenKilled(enemy);
-
-        enemiesLeft--;
-        SetWaveText();
-
-        return false;
     }
 
     bool OnPlayerDeath(Damageable player) {
@@ -61,9 +57,18 @@ public class SpawnWave : Spawnable {
                 textField.text = "All " + (currentWaveNumber + 1) + " Waves Cleared!";
                 Destroy(gameObject);
             }
-        } else if(AllPlayersDead()) {
-            RestartWave(currentWaveNumber);
+        } else if(!isRestarting && AllPlayersDead()) {
+            StartCoroutine(RestartAfter(1));
+        } else {
+            SetWaveText();
         }
+    }
+
+    IEnumerator RestartAfter(float seconds) {
+        isRestarting = true;
+        yield return new WaitForSeconds(seconds);
+        RestartWave(currentWaveNumber);
+        isRestarting = false;
     }
 
     bool AllPlayersDead() {
@@ -75,10 +80,12 @@ public class SpawnWave : Spawnable {
     }
 
     bool IsWaveComplete() {
-        return enemiesLeft <= 0;
+        return transform.childCount == 0;
     }
 
     void SpawnPlayers() {
+        playersLeft = 0;
+
         foreach(Player player in players) {
             if(!player.isAlive()) {
                 player.transform.position = Vector2.zero;
@@ -109,21 +116,16 @@ public class SpawnWave : Spawnable {
                 enemy.transform.eulerAngles = Vector3.forward * MathHelper.Rand(0f, 360f);
                 enemy.GetComponent<Ship>().controller = enemy.AddComponent<EnemyShipAI>();
                 enemy.GetComponent<Ship>().SetMinimap(enemyMinimapIcon);
-                enemy.GetComponent<Damageable>().OnKill(OnEnemyDeath);
                 wave.enemies.Add(enemy);
                 totalEnemies++;
             }
         }
 
-        enemiesLeft = totalEnemies;
-
-        SetWaveText();
-
         SpawnPlayers();
     }
 
     public void SetWaveText() {
-        textField.text = "Wave " + (1 + currentWaveNumber) + " [" + enemiesLeft + "/" + totalEnemies + "]";
+        textField.text = "Wave " + (1 + currentWaveNumber) + " [" + transform.childCount + "/" + totalEnemies + "]";
     }
 
     void RestartWave(int waveNumber) {

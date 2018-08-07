@@ -188,6 +188,7 @@ GameObject:
   - component: {fileID: 114625231557424926}
   - component: {fileID: 114460689224296304}
   - component: {fileID: 114111967540134984}
+  - component: {fileID: 82031799967362604}
   - component: {fileID: 50570966534552752}
   - component: {fileID: 60720076315780090}
   m_Layer: 0
@@ -402,6 +403,101 @@ PolygonCollider2D:
       - {x: -0.0019461066, y: -0.30584306}
       - {x: -0.2542019, y: -0.20856966}
       - {x: -0.34981826, y: 0.0009113103}
+--- !u!82 &82031799967362604
+AudioSource:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1979176726472058}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 8300000, guid: be2af498c85f6bd4399e4fb198add1a2, type: 3}
+  m_PlayOnAwake: 0
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0.8
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!114 &114111967540134984
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -431,6 +527,7 @@ MonoBehaviour:
   attributes: {fileID: 114625231557424926}
   fadeDelay: 0.25
   fadeSteps: 20
+  destroySound: {fileID: 8300000, guid: 6f814ea926beba148940b64d843dc980, type: 3}
 --- !u!114 &114239859662404926
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -443,6 +540,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   isActive: 0
+  warpSound: {fileID: 8300000, guid: f3166c657a4a5f44ebf96d03f5d0a471, type: 3}
   trailPrefab: {fileID: 1838611670494900, guid: 6e4df184c678a4546a8913835babed32,
     type: 2}
 --- !u!114 &114460689224296304
@@ -457,6 +555,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   statusBar: {fileID: 0}
+  engineVolume: 0.02
+  engineVolumeModifier: 1
+  engineSoundLoopStart: 0
+  engineSoundLoopEnd: 2.7
+  damageSound: {fileID: 8300000, guid: fd99041654c9f8f4aab3c97e18a8aeea, type: 3}
+  shieldDamageSound: {fileID: 8300000, guid: ef335a9575f69a946ac418b70b1dc1b4, type: 3}
   trails:
   - {fileID: 198060433493738640}
   - {fileID: 198178600160568786}
@@ -464,6 +568,7 @@ MonoBehaviour:
   module: {fileID: 114239859662404926}
   shipID: 0
   attributes: {fileID: 0}
+  engineSound: {fileID: 0}
   alternatingWeapons: 1
   weapons:
   - {fileID: 114868791727674648}
@@ -505,6 +610,8 @@ MonoBehaviour:
   particleEffect: {fileID: 198856578184089350}
   explosionEffect: {fileID: 1209173556913804, guid: a4fd570efd98b22408e971f5e5bffa27,
     type: 2}
+  explosionSound: {fileID: 8300000, guid: fa9d2f766e302a647a86e68e85013e81, type: 3}
+  fireSound: {fileID: 8300000, guid: 8a84d6def962af744a16de0799840c96, type: 3}
   fireLocation: {x: 0, y: 0.41}
   fireDirection: {x: 0, y: 0}
   maxShellDistance: 250
@@ -531,6 +638,8 @@ MonoBehaviour:
   particleEffect: {fileID: 198773893699598512}
   explosionEffect: {fileID: 1209173556913804, guid: a4fd570efd98b22408e971f5e5bffa27,
     type: 2}
+  explosionSound: {fileID: 8300000, guid: fa9d2f766e302a647a86e68e85013e81, type: 3}
+  fireSound: {fileID: 8300000, guid: 8a84d6def962af744a16de0799840c96, type: 3}
   fireLocation: {x: 0, y: 0.41}
   fireDirection: {x: 0, y: 0}
   maxShellDistance: 250
