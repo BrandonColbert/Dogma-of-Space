@@ -3814,8 +3814,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1172532c82246f042bf5003b16194193, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 100
-  height: 100
+  width: 250
+  height: 250
   textField: {fileID: 1526783262}
   enemyMinimapIcon: {fileID: 1894582406897580, guid: 74287e307586b3a47ade5095b7541731,
     type: 2}
